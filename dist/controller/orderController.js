@@ -333,7 +333,8 @@ const checkout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.checkout = checkout;
 const paymentCallback = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e;
+    var _a, _b;
+    var _c, _d, _e;
     try {
         const { reference } = req.query;
         if (!reference) {
@@ -410,9 +411,9 @@ const paymentCallback = (req, res) => __awaiter(void 0, void 0, void 0, function
         // NEW: prefer the amounts locked in at checkout time (what was actually
         // charged on Paystack); fall back to a fresh calc if for some reason
         // they weren't stored.
-        const vatAmount = (_b = tempPayment.vat) !== null && _b !== void 0 ? _b : totalAmount * VAT_RATE;
-        totalShippingFee = (_c = tempPayment.shippingFee) !== null && _c !== void 0 ? _c : totalShippingFee;
-        const grandTotal = (_d = tempPayment.totalAmount) !== null && _d !== void 0 ? _d : totalAmount + totalShippingFee + vatAmount;
+        const vatAmount = (_c = tempPayment.vat) !== null && _c !== void 0 ? _c : totalAmount * VAT_RATE;
+        totalShippingFee = (_d = tempPayment.shippingFee) !== null && _d !== void 0 ? _d : totalShippingFee;
+        const grandTotal = (_e = tempPayment.totalAmount) !== null && _e !== void 0 ? _e : totalAmount + totalShippingFee + vatAmount;
         const user_Id = new mongoose_1.default.Types.ObjectId(userId);
         const buyerInfoFixed = Object.assign(Object.assign({}, buyerInfo), { sessionId, userId: user_Id });
         const newOrder = yield orderModel_1.OrderModel.create({
@@ -436,7 +437,7 @@ const paymentCallback = (req, res) => __awaiter(void 0, void 0, void 0, function
                 continue;
             product.inventory -= item.quantity;
             yield product.save();
-            const posterId = (_e = product.poster) === null || _e === void 0 ? void 0 : _e.toString();
+            const posterId = (_b = product.poster) === null || _b === void 0 ? void 0 : _b.toString();
             const amountKobo = item.total * 100;
             if (posterId) {
                 const vendor = yield vendorModel_1.vendorModel.findById(posterId);
@@ -544,18 +545,15 @@ const paymentCallback = (req, res) => __awaiter(void 0, void 0, void 0, function
             orderDate: new Date().toLocaleDateString(),
             paymentMethod: "Paystack",
             transactionId: reference,
-            items: newOrder.items.map((item) => {
-                var _a;
-                return ({
-                    image: ((_a = item.product.images) === null || _a === void 0 ? void 0 : _a[0]) || "",
-                    name: item.product.name,
-                    description: item.product.description,
-                    origin: `${item.product.category}/${item.product.sub_category}/${item.product.sub_category2}`,
-                    quantity: item.quantity,
-                    sku: item.product._id,
-                    price: item.price,
-                });
-            }),
+            items: newOrder.items.map((item) => { var _a; return ({
+                image: ((_a = item.product.images) === null || _a === void 0 ? void 0 : _a[0]) || "",
+                name: item.product.name,
+                description: item.product.description,
+                origin: `${item.product.category}/${item.product.sub_category}/${item.product.sub_category2}`,
+                quantity: item.quantity,
+                sku: item.product._id,
+                price: item.price,
+            }); }),
             subtotal,
             shipping: totalShippingFee, // CHANGED: was hardcoded 25; excludes any Negotiable amount not yet agreed
             discount: 0,
@@ -1598,13 +1596,10 @@ const handleCancellationOrPostponement = (req, res) => __awaiter(void 0, void 0,
         // ✅ Notify other actors with items in this order
         const otherActors = order.items
             .filter((item) => !actorRequestedItems.some((rp) => rp.productId.toString() === item.product._id.toString()))
-            .map((item) => {
-            var _a;
-            return ({
-                actorId: (_a = item.product.poster) === null || _a === void 0 ? void 0 : _a.toString(),
-                actorType: item.product.poster === (admin === null || admin === void 0 ? void 0 : admin._id) ? "admin" : "vendor",
-            });
-        })
+            .map((item) => { var _a; return ({
+            actorId: (_a = item.product.poster) === null || _a === void 0 ? void 0 : _a.toString(),
+            actorType: item.product.poster === (admin === null || admin === void 0 ? void 0 : admin._id) ? "admin" : "vendor",
+        }); })
             .filter((actor) => actor.actorId && actor.actorId !== actorId);
         const uniqueOtherActors = [
             ...new Set(otherActors.map((actor) => `${actor.actorType}_${actor.actorId}`)),
@@ -1854,13 +1849,10 @@ const handleOrderReturnApproval = (req, res) => __awaiter(void 0, void 0, void 0
         // ✅ Notify other actors with items in this order
         const otherActors = order.items
             .filter((item) => !actorRequestedItems.some((rp) => rp.productId.toString() === item.product._id.toString()))
-            .map((item) => {
-            var _a;
-            return ({
-                actorId: (_a = item.product.poster) === null || _a === void 0 ? void 0 : _a.toString(),
-                actorType: item.product.poster === (admin === null || admin === void 0 ? void 0 : admin._id) ? "admin" : "vendor",
-            });
-        })
+            .map((item) => { var _a; return ({
+            actorId: (_a = item.product.poster) === null || _a === void 0 ? void 0 : _a.toString(),
+            actorType: item.product.poster === (admin === null || admin === void 0 ? void 0 : admin._id) ? "admin" : "vendor",
+        }); })
             .filter((actor) => actor.actorId && actor.actorId !== actorId);
         const uniqueOtherActors = [
             ...new Set(otherActors.map((actor) => `${actor.actorType}_${actor.actorId}`)),
@@ -2047,16 +2039,13 @@ const getMyPendingShippingOrders = (req, res) => __awaiter(void 0, void 0, void 
                 vat: order.vat,
                 grandTotal: order.grandTotal,
                 createdAt: order.createdAt,
-                pendingItems: pendingItems.map((item) => {
-                    var _a;
-                    return ({
-                        productId: item.product._id,
-                        productName: item.product.name,
-                        productImage: ((_a = item.product.images) === null || _a === void 0 ? void 0 : _a[0]) || "",
-                        quantity: item.quantity,
-                        shippingStatus: item.shippingStatus,
-                    });
-                }),
+                pendingItems: pendingItems.map((item) => { var _a; return ({
+                    productId: item.product._id,
+                    productName: item.product.name,
+                    productImage: ((_a = item.product.images) === null || _a === void 0 ? void 0 : _a[0]) || "",
+                    quantity: item.quantity,
+                    shippingStatus: item.shippingStatus,
+                }); }),
             };
         });
         return res.status(200).json({
@@ -2088,11 +2077,8 @@ const getVendorPendingShippingOrders = (req, res) => __awaiter(void 0, void 0, v
         // else's items on the same multi-vendor order.
         const formatted = orders
             .map((order) => {
-            const vendorPendingItems = order.items.filter((item) => {
-                var _a, _b;
-                return item.shippingStatus === "Pending Agreement" &&
-                    ((_b = (_a = item.product) === null || _a === void 0 ? void 0 : _a.poster) === null || _b === void 0 ? void 0 : _b.toString()) === vendorId.toString();
-            });
+            const vendorPendingItems = order.items.filter((item) => { var _a, _b; return item.shippingStatus === "Pending Agreement" &&
+                ((_b = (_a = item.product) === null || _a === void 0 ? void 0 : _a.poster) === null || _b === void 0 ? void 0 : _b.toString()) === vendorId.toString(); });
             if (vendorPendingItems.length === 0)
                 return null;
             return {
@@ -2107,15 +2093,12 @@ const getVendorPendingShippingOrders = (req, res) => __awaiter(void 0, void 0, v
                 status: order.status,
                 paymentOption: order.paymentOption,
                 createdAt: order.createdAt,
-                pendingItems: vendorPendingItems.map((item) => {
-                    var _a;
-                    return ({
-                        productId: item.product._id,
-                        productName: item.product.name,
-                        productImage: ((_a = item.product.images) === null || _a === void 0 ? void 0 : _a[0]) || "",
-                        quantity: item.quantity,
-                    });
-                }),
+                pendingItems: vendorPendingItems.map((item) => { var _a; return ({
+                    productId: item.product._id,
+                    productName: item.product.name,
+                    productImage: ((_a = item.product.images) === null || _a === void 0 ? void 0 : _a[0]) || "",
+                    quantity: item.quantity,
+                }); }),
             };
         })
             .filter(Boolean);

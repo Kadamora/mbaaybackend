@@ -15,6 +15,7 @@ import { InvoiceModel } from "../model/invoiceModel";
 import NotificationModel from "../model/notificationsModel";
 import { OAuth2Client } from "google-auth-library";
 import { VendorCommunityModel } from "../model/communityModel";
+import { validateEmailDeliverable } from "../utils/emailValidation";
 
 const PAYSTACK_SECRET_KEY = "sk_live_8e60afeb1befc22f297e02606b679decd84dbeb4";
 
@@ -229,6 +230,22 @@ export const create_vendor = async (req: Request, res: any) => {
       craftCategories,
       businessDescription,
     } = req.body;
+
+    // Block bots / disposable / non-existent emails: don't register, don't mail.
+    const emailCheck = await validateEmailDeliverable(email);
+    if (!emailCheck.valid) {
+      return res.status(400).json({ message: emailCheck.reason });
+    }
+
+    // Prevent duplicate vendor accounts for the same email.
+    const existingVendor = await vendorModel.findOne({
+      email: String(email).trim().toLowerCase(),
+    });
+    if (existingVendor) {
+      return res
+        .status(409)
+        .json({ message: "A vendor account with this email already exists." });
+    }
 
     const admins = await adminModel.find({ role: "Admin" });
 

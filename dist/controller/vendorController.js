@@ -28,6 +28,7 @@ const invoiceModel_1 = require("../model/invoiceModel");
 const notificationsModel_1 = __importDefault(require("../model/notificationsModel"));
 const google_auth_library_1 = require("google-auth-library");
 const communityModel_1 = require("../model/communityModel");
+const emailValidation_1 = require("../utils/emailValidation");
 const PAYSTACK_SECRET_KEY = "sk_live_8e60afeb1befc22f297e02606b679decd84dbeb4";
 const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_ID);
 const accountTypeLimits = {
@@ -192,6 +193,20 @@ exports.googleCompleteSignup = googleCompleteSignup;
 const create_vendor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { storeName, email, userName, address1, address2, country, city, state, postcode, storePhone, password, craftCategories, businessDescription, } = req.body;
+        // Block bots / disposable / non-existent emails: don't register, don't mail.
+        const emailCheck = yield (0, emailValidation_1.validateEmailDeliverable)(email);
+        if (!emailCheck.valid) {
+            return res.status(400).json({ message: emailCheck.reason });
+        }
+        // Prevent duplicate vendor accounts for the same email.
+        const existingVendor = yield vendorModel_1.vendorModel.findOne({
+            email: String(email).trim().toLowerCase(),
+        });
+        if (existingVendor) {
+            return res
+                .status(409)
+                .json({ message: "A vendor account with this email already exists." });
+        }
         const admins = yield adminModel_1.adminModel.find({ role: "Admin" });
         if (admins.length === 0) {
             return res

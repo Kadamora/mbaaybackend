@@ -25,6 +25,7 @@ const vendorModel_1 = require("../model/vendorModel");
 const google_auth_library_1 = require("google-auth-library");
 const notificationsModel_1 = __importDefault(require("../model/notificationsModel"));
 const communityModel_1 = require("../model/communityModel");
+const emailValidation_1 = require("../utils/emailValidation");
 const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_ID);
 const googleAuthUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -66,6 +67,20 @@ exports.googleAuthUser = googleAuthUser;
 const create_user = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { name, email, password, phoneNumber } = req.body;
+        // Block bots / disposable / non-existent emails: don't register, don't mail.
+        const emailCheck = yield (0, emailValidation_1.validateEmailDeliverable)(email);
+        if (!emailCheck.valid) {
+            return res.status(400).json({ message: emailCheck.reason });
+        }
+        // Prevent duplicate accounts for the same email.
+        const existingUser = yield userModel_1.userModel.findOne({
+            email: String(email).trim().toLowerCase(),
+        });
+        if (existingUser) {
+            return res
+                .status(409)
+                .json({ message: "An account with this email already exists." });
+        }
         function generateOTP() {
             let otp = Math.floor(10000 + Math.random() * 90000).toString();
             while (otp.length < 5) {
@@ -258,9 +273,10 @@ const findOneUser = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 });
 exports.findOneUser = findOneUser;
 const getUserOrders = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d;
+    var _a, _b, _c;
+    var _d;
     try {
-        const shopperId = (_b = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId) !== null && _b !== void 0 ? _b : (_c = req.user) === null || _c === void 0 ? void 0 : _c._id;
+        const shopperId = (_d = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId) !== null && _d !== void 0 ? _d : (_b = req.user) === null || _b === void 0 ? void 0 : _b._id;
         if (!shopperId) {
             return res.status(401).json({ message: "Unauthenticated request" });
         }
@@ -276,9 +292,9 @@ const getUserOrders = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         if (!orders || orders.length === 0) {
             orders = yield orderModel_1.OrderModel.find({
                 _id: {
-                    $in: ((_d = (yield vendorModel_1.vendorModel
+                    $in: ((_c = (yield vendorModel_1.vendorModel
                         .findById(shopperId)
-                        .select("my_bought_products_orders"))) === null || _d === void 0 ? void 0 : _d.my_bought_products_orders) || [],
+                        .select("my_bought_products_orders"))) === null || _c === void 0 ? void 0 : _c.my_bought_products_orders) || [],
                 },
             })
                 .populate({
