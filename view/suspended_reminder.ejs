@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Account Suspended - Mbaay</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f5f5;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+      }
+      .header {
+        background: linear-gradient(135deg, #ff710b 0%, #e65a00 100%);
+        padding: 40px 20px;
+        text-align: center;
+      }
+      .logo img {
+        max-width: 160px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+      }
+      .subheader {
+        color: white;
+        font-size: 14px;
+        margin-top: 12px;
+        opacity: 0.9;
+      }
+
+      /* new suspension status section with visual hierarchy */
+      .suspension-status {
+        background-color: #fff3e0;
+        padding: 25px 20px;
+        text-align: center;
+        border-top: 4px solid #ff710b;
+      }
+      .status-icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+      }
+      .status-title {
+        font-size: 22px;
+        font-weight: bold;
+        color: #1a1a1a;
+        margin-bottom: 8px;
+      }
+      .status-date {
+        font-size: 13px;
+        color: #666;
+      }
+
+      .content {
+        padding: 30px 20px;
+      }
+      .greeting {
+        font-size: 16px;
+        color: #1a1a1a;
+        margin-bottom: 20px;
+        line-height: 1.6;
+      }
+
+      .section {
+        margin-bottom: 28px;
+      }
+      .section-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #1a1a1a;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 3px solid #ff710b;
+        display: inline-block;
+      }
+
+      /* new timeline visualization */
+      .timeline-container {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+        border-left: 4px solid #ff710b;
+      }
+      .timeline-step {
+        display: flex;
+        margin-bottom: 18px;
+        position: relative;
+      }
+      .timeline-step:last-child {
+        margin-bottom: 0;
+      }
+      .timeline-step::before {
+        content: "";
+        position: absolute;
+        left: -26px;
+        width: 20px;
+        height: 20px;
+        background-color: #ff710b;
+        border-radius: 50%;
+        border: 3px solid #ffffff;
+        top: 2px;
+      }
+      .timeline-day {
+        font-weight: bold;
+        color: #ff710b;
+        min-width: 100px;
+        font-size: 14px;
+      }
+      .timeline-desc {
+        color: #333;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .timeline-desc strong {
+        color: #1a1a1a;
+      }
+
+      /* improved grace period highlight */
+      .grace-period {
+        background-color: #e8f5e9;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        border-left: 4px solid #4caf50;
+      }
+      .grace-title {
+        font-weight: bold;
+        color: #2e7d32;
+        font-size: 15px;
+        margin-bottom: 6px;
+      }
+      .grace-text {
+        color: #558b2f;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .status-box {
+        background-color: #f0f0f0;
+        padding: 18px;
+        margin: 20px 0;
+        border-radius: 6px;
+      }
+      .status-box-title {
+        font-weight: bold;
+        color: #1a1a1a;
+        margin-bottom: 10px;
+      }
+      .status-item {
+        font-size: 13px;
+        color: #333;
+        margin: 8px 0;
+      }
+      .status-item.active {
+        color: #2e7d32;
+        font-weight: 500;
+      }
+      .status-item.inactive {
+        color: #d32f2f;
+        font-weight: 500;
+      }
+
+      .cta-primary {
+        display: inline-block;
+        background-color: #ff710b;
+        color: white;
+        padding: 14px 40px;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: bold;
+        font-size: 15px;
+        text-align: center;
+        margin: 20px 0;
+      }
+      .cta-primary:hover {
+        background-color: #e65a00;
+      }
+
+      .button-container {
+        text-align: center;
+      }
+
+      .info-highlight {
+        background: linear-gradient(135deg, #fff9e6 0%, #fff3e0 100%);
+        padding: 18px;
+        border-radius: 6px;
+        margin: 20px 0;
+        border-left: 4px solid #ff710b;
+      }
+      .info-title {
+        font-weight: bold;
+        color: #1a1a1a;
+        margin-bottom: 10px;
+      }
+      .info-item {
+        font-size: 13px;
+        color: #555;
+        margin: 8px 0;
+        line-height: 1.5;
+      }
+
+      .divider {
+        height: 2px;
+        background-color: #eeeeee;
+        margin: 25px 0;
+      }
+
+      .footer {
+        background-color: #1a1a1a;
+        color: #cccccc;
+        padding: 25px 20px;
+        text-align: center;
+        font-size: 12px;
+        line-height: 1.7;
+      }
+      .footer p {
+        margin-bottom: 10px;
+      }
+      .footer-link {
+        color: #ff710b;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      .footer-link:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <table
+      class="container"
+      width="100%"
+      border="0"
+      cellpadding="0"
+      cellspacing="0"
+    >
+      <!-- HEADER -->
+      <tr>
+        <td class="header">
+          <img
+            src="/images/mbaay-logo.png"
+            alt="Mbaay"
+            style="max-width: 160px; height: auto"
+          />
+          <div class="subheader">Product Visibility Suspension</div>
+        </td>
+      </tr>
+
+      <!-- SUSPENSION STATUS -->
+      <tr>
+        <td class="suspension-status">
+          <div class="status-icon">🔒</div>
+          <div class="status-title">Your Products Are Suspended</div>
+          <div class="status-date">Expired: <%= expirationDate %></div>
+        </td>
+      </tr>
+
+      <!-- CONTENT -->
+      <tr>
+        <td class="content">
+          <div class="greeting">
+            Hello <strong><%= vendorName %></strong>,<br /><br />
+            Your Mbaay subscription has expired, and as a result, your products
+            have been suspended and are currently hidden from buyers. Your
+            vendor account remains active, and you still have time to renew
+            before automatic deletion begins.
+          </div>
+
+          <!-- GRACE PERIOD ALERT -->
+          <div class="grace-period">
+            <div class="grace-title">✓ 21-Day Grace Period</div>
+            <div class="grace-text">
+              You have <strong><%= daysRemaining %> days</strong> to renew your
+              subscription. After this period expires, your products will be
+              automatically deleted bit by bit.
+            </div>
+          </div>
+
+          <!-- TIMELINE -->
+          <div class="section">
+            <div class="section-title">📅 Deletion Timeline</div>
+            <p style="font-size: 13px; color: #666; margin-bottom: 18px">
+              Here's what will happen if you don't renew:
+            </p>
+            <div class="timeline-container">
+              <div class="timeline-step">
+                <div>
+                  <div class="timeline-day">Days 1-21</div>
+                  <div class="timeline-desc">
+                    <strong>Grace Period</strong> – Renew anytime to restore
+                    full access
+                  </div>
+                </div>
+              </div>
+              <div class="timeline-step">
+                <div>
+                  <div class="timeline-day">Day 22</div>
+                  <div class="timeline-desc">
+                    <strong>25% Deleted</strong> – Beginning of automatic
+                    product removal
+                  </div>
+                </div>
+              </div>
+              <div class="timeline-step">
+                <div>
+                  <div class="timeline-day">Day 25</div>
+                  <div class="timeline-desc">
+                    <strong>50% Deleted</strong> – Half of your products are now
+                    gone
+                  </div>
+                </div>
+              </div>
+              <div class="timeline-step">
+                <div>
+                  <div class="timeline-day">Day 28</div>
+                  <div class="timeline-desc">
+                    <strong>75% Deleted</strong> – Only 25% of products remain
+                  </div>
+                </div>
+              </div>
+              <div class="timeline-step">
+                <div>
+                  <div class="timeline-day">Day 31</div>
+                  <div class="timeline-desc">
+                    <strong>100% Deleted</strong> – All products permanently
+                    removed
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CURRENT STATUS -->
+          <div class="section">
+            <div class="section-title">Current Account Status</div>
+            <div class="status-box">
+              <div class="status-box-title">What's Disabled:</div>
+              <div class="status-item inactive">
+                ✗ Cannot upload new products
+              </div>
+              <div class="status-item inactive">
+                ✗ Products are hidden from buyers
+              </div>
+              <div class="status-box-title" style="margin-top: 12px">
+                What's Available:
+              </div>
+              <div class="status-item active">✓ Access to vendor dashboard</div>
+              <div class="status-item active">
+                ✓ All products saved (temporary)
+              </div>
+              <div class="status-item active">✓ View order history</div>
+            </div>
+          </div>
+
+          <!-- CTA -->
+          <div class="button-container">
+            <a href="<%= renewalLink %>" class="cta-primary"
+              >Renew Subscription Now</a
+            >
+          </div>
+
+          <!-- BENEFITS -->
+          <div class="info-highlight">
+            <div class="info-title">When You Renew, You Get:</div>
+            <div class="info-item">✓ Immediate account reactivation</div>
+            <div class="info-item">
+              ✓ All products instantly visible to buyers
+            </div>
+            <div class="info-item">
+              ✓ Full upload and editing permissions restored
+            </div>
+            <div class="info-item">✓ No data loss or penalties</div>
+          </div>
+
+          <!-- DIVIDER -->
+          <table width="100%" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+              <td class="divider"></td>
+            </tr>
+          </table>
+
+          <!-- PRICING SECTION -->
+          <div class="section">
+            <div class="section-title">💳 Renew Your Subscription</div>
+            <p style="font-size: 13px; color: #666; margin-bottom: 15px">
+              Choose a plan that works for your business:
+            </p>
+            <div class="button-container">
+              <a
+                href="<%= plansLink %>"
+                style="
+                  display: inline-block;
+                  background-color: #f0f0f0;
+                  color: #1a1a1a;
+                  padding: 11px 22px;
+                  text-decoration: none;
+                  border-radius: 20px;
+                  font-weight: bold;
+                  border: 2px solid #ff710b;
+                  font-size: 14px;
+                "
+                >View All Plans</a
+              >
+            </div>
+          </div>
+
+          <!-- SUPPORT -->
+          <div class="section">
+            <div class="section-title">Need Assistance?</div>
+            <p style="font-size: 13px; color: #666; margin-bottom: 12px">
+              Our support team is here to help you get back on track:
+            </p>
+            <p style="font-size: 13px; color: #333; margin: 10px 0">
+              <strong>Email:</strong>
+              <a
+                href="mailto:mbaay.com@gmail.com"
+                style="color: #ff710b; text-decoration: none"
+                >mbaay.com@gmail.com</a
+              >
+            </p>
+            <p style="font-size: 13px; color: #666">
+              We typically respond within 24 hours
+            </p>
+          </div>
+        </td>
+      </tr>
+
+      <!-- FOOTER -->
+      <tr>
+        <td class="footer">
+          <p><strong>Mbaay – Celebrating Arts & Traditions</strong></p>
+          <p>
+            <a href="<%= dashboardLink %>" class="footer-link">Dashboard</a> |
+            <a href="<%= accountSettingsLink %>" class="footer-link"
+              >Settings</a
+            >
+            | <a href="<%= supportLink %>" class="footer-link">Support</a> |
+            <a href="<%= privacyLink %>" class="footer-link">Privacy</a>
+          </p>
+          <p style="color: #999999; font-size: 11px; margin-top: 12px">
+            This is an automated message. Please do not reply to this email.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

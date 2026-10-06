@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order Confirmation - Mbaay</title>
+    <style>
+      /* Reset styles for email clients */
+      body,
+      table,
+      td,
+      p,
+      a,
+      li,
+      blockquote {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+      table,
+      td {
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+      }
+      img {
+        -ms-interpolation-mode: bicubic;
+        border: 0;
+        height: auto;
+        line-height: 100%;
+        outline: none;
+        text-decoration: none;
+      }
+
+      /* Main styles */
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background-color: #f8f9fa;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333333;
+      }
+
+      .email-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .header {
+        background: linear-gradient(135deg, #ff6b35, #f7931e);
+        padding: 30px 20px;
+        text-align: center;
+      }
+
+      .logo {
+        max-width: 150px;
+        height: auto;
+      }
+
+      .header-text {
+        color: #ffffff;
+        font-size: 24px;
+        font-weight: bold;
+        margin: 15px 0 5px 0;
+      }
+
+      .header-subtext {
+        color: #ffffff;
+        font-size: 16px;
+        opacity: 0.9;
+        margin: 0;
+      }
+
+      .content {
+        padding: 40px 30px;
+      }
+
+      .greeting {
+        font-size: 18px;
+        color: #333333;
+        margin-bottom: 20px;
+      }
+
+      .order-info {
+        background-color: #f8f9fa;
+        border-left: 4px solid #ff6b35;
+        padding: 20px;
+        margin: 25px 0;
+        border-radius: 0 8px 8px 0;
+      }
+
+      .order-info h3 {
+        margin: 0 0 15px 0;
+        color: #ff6b35;
+        font-size: 18px;
+      }
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        padding: 5px 0;
+      }
+
+      .info-label {
+        font-weight: 600;
+        color: #555555;
+      }
+
+      .info-value {
+        color: #333333;
+      }
+
+      .items-section {
+        margin: 30px 0;
+      }
+
+      .section-title {
+        font-size: 20px;
+        color: #333333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #ff6b35;
+      }
+
+      .item {
+        display: flex;
+        align-items: center;
+        padding: 20px 0;
+        border-bottom: 1px solid #e9ecef;
+      }
+
+      .item:last-child {
+        border-bottom: none;
+      }
+
+      .item-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-right: 20px;
+      }
+
+      .item-details {
+        flex: 1;
+      }
+
+      .item-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333333;
+        margin-bottom: 5px;
+      }
+
+      .item-description {
+        font-size: 14px;
+        color: #666666;
+        margin-bottom: 8px;
+      }
+
+      .item-meta {
+        font-size: 14px;
+        color: #888888;
+      }
+
+      .item-price {
+        font-size: 16px;
+        font-weight: 600;
+        color: #ff6b35;
+        text-align: right;
+      }
+
+      .summary-table {
+        width: 100%;
+        margin: 30px 0;
+        border-collapse: collapse;
+      }
+
+      .summary-row {
+        border-bottom: 1px solid #e9ecef;
+      }
+
+      .summary-row:last-child {
+        border-bottom: 2px solid #ff6b35;
+        font-weight: bold;
+        font-size: 18px;
+      }
+
+      .summary-row td {
+        padding: 12px 0;
+      }
+
+      .summary-label {
+        color: #555555;
+      }
+
+      .summary-value {
+        text-align: right;
+        color: #333333;
+      }
+
+      .shipping-info {
+        background-color: #fff8f5;
+        border: 1px solid #ffe4d6;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 25px 0;
+      }
+
+      .shipping-info h4 {
+        color: #ff6b35;
+        margin: 0 0 15px 0;
+        font-size: 16px;
+      }
+
+      .address {
+        line-height: 1.5;
+        color: #555555;
+      }
+
+      .cta-section {
+        text-align: center;
+        margin: 40px 0;
+      }
+
+      .cta-button {
+        display: inline-block;
+        background: linear-gradient(135deg, #ff6b35, #f7931e);
+        color: #ffffff;
+        text-decoration: none;
+        padding: 15px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s ease;
+      }
+
+      .footer {
+        background-color: #2c3e50;
+        color: #ffffff;
+        padding: 30px 20px;
+        text-align: center;
+      }
+
+      .footer-content {
+        max-width: 500px;
+        margin: 0 auto;
+      }
+
+      .footer h4 {
+        color: #ff6b35;
+        margin-bottom: 15px;
+      }
+
+      .footer p {
+        margin: 10px 0;
+        opacity: 0.9;
+      }
+
+      .footer a {
+        color: #ff6b35;
+        text-decoration: none;
+      }
+
+      .social-links {
+        margin: 20px 0;
+      }
+
+      .social-links a {
+        display: inline-block;
+        margin: 0 10px;
+        color: #ffffff;
+        text-decoration: none;
+      }
+
+      /* Responsive styles */
+      @media only screen and (max-width: 600px) {
+        .email-container {
+          width: 100% !important;
+        }
+
+        .content {
+          padding: 20px 15px !important;
+        }
+
+        .item {
+          flex-direction: column;
+          text-align: center;
+        }
+
+        .item-image {
+          margin: 0 0 15px 0;
+        }
+
+        .info-row {
+          flex-direction: column;
+          text-align: left;
+        }
+
+        .summary-value {
+          text-align: left !important;
+          margin-top: 5px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <!-- Header -->
+      <div class="header">
+        <img
+          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/new_mbaay-removebg-preview-jkBgXmHeDNxRueVnanWDp8FMg27vxP.png"
+          alt="Mbaay Logo"
+          class="logo"
+        />
+        <h1 class="header-text">Order Confirmed!</h1>
+        <p class="header-subtext">Thank you for preserving culture with us</p>
+      </div>
+
+      <!-- Main Content -->
+      <div class="content">
+        <p class="greeting">Hello <%= customerName %>,</p>
+
+        <p>
+          We're excited to confirm that your order has been successfully placed
+          and payment has been processed. Your cultural treasures are being
+          carefully prepared for shipment.
+        </p>
+
+        <!-- Order Information -->
+        <div class="order-info">
+          <h3>Order Details</h3>
+          <div class="info-row">
+            <span class="info-label">Order Number:</span>
+            <span class="info-value">#<%= orderNumber %></span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Order Date:</span>
+            <span class="info-value"><%= orderDate %></span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Payment Method:</span>
+            <span class="info-value"><%= paymentMethod %></span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Transaction ID:</span>
+            <span class="info-value"><%= transactionId %></span>
+          </div>
+        </div>
+
+        <!-- Items Section -->
+        <div class="items-section">
+          <h2 class="section-title">Your Cultural Artifacts</h2>
+          <% items.forEach(function(item) { %>
+          <div class="item">
+            <img
+              src="<%= item.image %>"
+              alt="<%= item.name %>"
+              class="item-image"
+            />
+            <div class="item-details">
+              <div class="item-name"><%= item.name %></div>
+              <div class="item-description"><%= item.description %></div>
+              <div class="item-meta">
+                Origin: <%= item.origin %> | Quantity: <%= item.quantity %> |
+                SKU: <%= item.sku %>
+              </div>
+            </div>
+            <div class="item-price">$<%= item.price.toFixed(2) %></div>
+          </div>
+          <% }); %>
+        </div>
+
+        <!-- Order Summary -->
+        <table class="summary-table">
+          <tr class="summary-row">
+            <td class="summary-label">Subtotal:</td>
+            <td class="summary-value">$<%= subtotal.toFixed(2) %></td>
+          </tr>
+          <tr class="summary-row">
+            <td class="summary-label">Shipping:</td>
+            <td class="summary-value">$<%= shipping.toFixed(2) %></td>
+          </tr>
+          <% if (discount > 0) { %>
+          <tr class="summary-row">
+            <td class="summary-label">Discount:</td>
+            <td class="summary-value">-$<%= discount.toFixed(2) %></td>
+          </tr>
+          <% } %>
+          <tr class="summary-row">
+            <td class="summary-label">Tax:</td>
+            <td class="summary-value">$<%= tax.toFixed(2) %></td>
+          </tr>
+          <tr class="summary-row">
+            <td class="summary-label">Total:</td>
+            <td class="summary-value">$<%= total.toFixed(2) %></td>
+          </tr>
+        </table>
+
+        <!-- Shipping Information -->
+        <div class="shipping-info">
+          <h4>📦 Shipping Information</h4>
+          <div class="address">
+            <strong><%= shippingAddress.name %></strong><br />
+            <%= shippingAddress.street %><br />
+            <%= shippingAddress.city %>, <%= shippingAddress.state %> <%=
+            shippingAddress.zipCode %><br />
+            <%= shippingAddress.country %>
+          </div>
+          <p style="margin-top: 15px; color: #ff6b35; font-weight: 600">
+            Estimated Delivery: <%= estimatedDelivery %>
+          </p>
+        </div>
+
+        <!-- Call to Action -->
+        <div class="cta-section">
+          <a href="<%= trackingUrl %>" class="cta-button">Track Your Order</a>
+        </div>
+
+        <p>
+          Your cultural artifacts are more than just purchases – they're pieces
+          of history and heritage. We take special care in packaging and
+          shipping each item to ensure it arrives in perfect condition.
+        </p>
+
+        <p>
+          You'll receive a shipping confirmation email with tracking information
+          once your order is dispatched. If you have any questions about your
+          order, please don't hesitate to contact our customer service team.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <div class="footer-content">
+          <h4>Need Help?</h4>
+          <p>
+            Our customer service team is here to help you with any questions
+            about your order or our cultural artifacts.
+          </p>
+          <p>
+            📧 Email: <a href="mailto:support@mbaay.com">support@mbaay.com</a
+            ><br />
+            📞 Phone: <a href="tel:+1234567890">+1 (234) 567-8900</a><br />
+            🕒 Hours: Monday - Friday, 9 AM - 6 PM EST
+          </p>
+
+          <div class="social-links">
+            <a href="<%= socialLinks.facebook %>">Facebook</a>
+            <a href="<%= socialLinks.instagram %>">Instagram</a>
+            <a href="<%= socialLinks.twitter %>">Twitter</a>
+          </div>
+
+          <p style="font-size: 12px; margin-top: 20px; opacity: 0.7">
+            © <%= new Date().getFullYear() %> Mbaay. All rights reserved.<br />
+            Preserving culture, one artifact at a time.
+          </p>
+
+          <p style="font-size: 11px; margin-top: 15px; opacity: 0.6">
+            You received this email because you made a purchase at Mbaay.com<br />
+            <a href="<%= unsubscribeUrl %>" style="color: #ff6b35"
+              >Unsubscribe</a
+            >
+            |
+            <a href="<%= privacyUrl %>" style="color: #ff6b35"
+              >Privacy Policy</a
+            >
+          </p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verify Your Email</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+        background-color: #f9f9f9;
+      }
+      .container {
+        max-width: 600px;
+        margin: 50px auto;
+        background-color: #ffffff;
+        text-align: center;
+        border-radius: 10px;
+        box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+      }
+      .header {
+        background-color: #f5f5f5;
+        padding: 20px;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+      }
+      .header img {
+        width: 120px;
+        height: auto;
+      }
+      h1 {
+        font-size: 19px;
+        color: #333;
+      }
+      p {
+        font-size: 16px;
+        color: #555;
+        margin: 15px 0;
+      }
+      .email {
+        font-weight: bold;
+      }
+      .verify-button {
+        display: inline-block;
+        background-color: #4f46e5;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-size: 16px;
+        font-weight: bold;
+      }
+      .verify-button:hover {
+        background-color: #4338ca;
+      }
+      .link {
+        font-size: 14px;
+        color: #666;
+        margin-top: 15px;
+      }
+      .footer {
+        font-size: 12px;
+        color: #aaa;
+        margin-top: 20px;
+      }
+      .title {
+        width: 600px;
+        /* background-color: red; */
+        text-align: left;
+        font-size: 16px;
+      }
+      a {
+        text-decoration: none;
+        color: #0c5197;
+      }
+      span {
+        font-weight: 900;
+      }
+
+      .footer img {
+        height: 140px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img
+          src="https://res.cloudinary.com/dn3mokfxz/image/upload/v1738158124/sdPRL1D138_omge9h.gif"
+          alt="Email Verification"
+        />
+      </div>
+      <h1>Your Mbaay Vendor Account has been Verified ✅</h1>
+      <div class="title"><h3>Dear <%= storeName %></h3></div>
+      <p>
+        Congratulations! Your vendor account on Mbaay has been successfully
+        verified. You can now log in and start exploring all the exciting
+        features designed to help you showcase and sell your unique products to
+        a global audience.
+      </p>
+      <div class="title"><h3>What’s Next?</h3></div>
+      <div class="title">
+        <p>
+          ✅ <span>Log in to Your Account</span>: Access your dashboard and
+          manage your store effortlessly.
+        </p>
+        <p>
+          ✅ <span>List Your Products</span>: Start uploading and showcasing
+          your cultural treasures.
+        </p>
+        <p>
+          ✅ <span>Connect with Buyers</span>: Engage with customers and grow
+          your business.
+        </p>
+        <p>
+          ✅ <span>Enjoy Seamless Transactions</span>: Experience smooth and
+          secure order processing.
+        </p>
+      </div>
+      <h3>
+        <a href="https://mbaaysite-6b8n.vercel.app/login-vendor"
+          >🔗 Login to Your Vendor Dashboard</a
+        >
+      </h3>
+      <p>
+        If you have any questions or need assistance, feel free to reach out to
+        our support team.
+      </p>
+      <h3>Welcome to Mbaay! 🚀</h3>
+      <p>
+        Best regards, <br />
+        <span>The Mbaay Team</span>
+      </p>
+      <p class="footer">
+        <img
+          src="https://res.cloudinary.com/dn3mokfxz/image/upload/v1737988620/new_mbaay-removebg-preview_cyimbt.png"
+          alt=""
+        />
+      </p>
+    </div>
+  </body>
+</html>

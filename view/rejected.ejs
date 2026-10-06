@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verify Your Email</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+        background-color: #f9f9f9;
+      }
+      .container {
+        max-width: 600px;
+        margin: 50px auto;
+        background-color: #ffffff;
+        text-align: center;
+        border-radius: 10px;
+        box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+      }
+      .header {
+        background-color: #f5f5f5;
+        padding: 20px;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+      }
+      .header img {
+        width: 140px;
+        height: auto;
+      }
+      h1 {
+        font-size: 19px;
+        color: #333;
+      }
+      p {
+        font-size: 16px;
+        color: #555;
+        margin: 15px 0;
+      }
+      .email {
+        font-weight: bold;
+      }
+      .verify-button {
+        display: inline-block;
+        background-color: #4f46e5;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-size: 16px;
+        font-weight: bold;
+      }
+      .verify-button:hover {
+        background-color: #4338ca;
+      }
+      .link {
+        font-size: 14px;
+        color: #666;
+        margin-top: 15px;
+      }
+      .footer {
+        font-size: 12px;
+        color: #aaa;
+        margin-top: 20px;
+      }
+      .title {
+        width: 600px;
+        /* background-color: red; */
+        text-align: left;
+        font-size: 16px;
+      }
+      a {
+        text-decoration: none;
+        color: #0c5197;
+      }
+      span {
+        font-weight: 900;
+      }
+
+      .footer img {
+        height: 140px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img
+          src="https://res.cloudinary.com/dn3mokfxz/image/upload/v1738163121/Animation_-_1738163008398_h58bnh.gif"
+          alt="Rejected"
+        />
+      </div>
+      <h1>Vendor Account Verification Unsuccessful</h1>
+      <div class="title"><h3>Dear <%= storeName %></h3></div>
+      <p>
+        We regret to inform you that your vendor account verification on Mbaay
+        was unsuccessful due to invalid credentials or missing details. To
+        ensure a smooth verification process, please review your submission and
+        try again.
+      </p>
+      <div class="title"><h3>Next Steps to Reverify Your Account:</h3></div>
+      <div class="title">
+        <p>
+          🔹 Double-check that all required documents and details are correct
+          and up to date.
+        </p>
+        <p>
+          🔹 Ensure that the credentials provided match your official business
+          information.
+        </p>
+        <p>🔹 Resubmit your application for verification.</p>
+      </div>
+      <h3><a href="#">🔗 Reverify Your Account</a></h3>
+      <p>
+        If you have any questions or need assistance, feel free to reach out to
+        our support team.
+      </p>
+      <p>
+        Best regards, <br />
+        <span>The Mbaay Team</span>
+      </p>
+      <p class="footer">
+        <img
+          src="https://res.cloudinary.com/dn3mokfxz/image/upload/v1737988620/new_mbaay-removebg-preview_cyimbt.png"
+          alt=""
+        />
+      </p>
+    </div>
+  </body>
+</html>

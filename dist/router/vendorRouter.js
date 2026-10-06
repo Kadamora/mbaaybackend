@@ -1,0 +1,43 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const vendorController_1 = require("../controller/vendorController");
+const jwt_authenticate_1 = require("../middlewares/jwt_authenticate");
+const multer_1 = require("../config/multer");
+const orderController_1 = require("../controller/orderController");
+const vendorRouter = (0, express_1.Router)();
+vendorRouter.post("/create_vendor", vendorController_1.create_vendor);
+vendorRouter.post("/login_vendor", vendorController_1.login_vendor);
+vendorRouter.post("/forgotpassword", vendorController_1.forgetPassword);
+vendorRouter.post("/resetpassword", vendorController_1.verifyOtpAndResetPassword);
+vendorRouter.get("/find_one_vendor", jwt_authenticate_1.authenticate, vendorController_1.find_one_vendor);
+vendorRouter.post("/upload_return_policy", jwt_authenticate_1.authenticate, multer_1.returnPolicyupload, vendorController_1.uploadReturnPolicy);
+vendorRouter.patch("/upgrade_plan", jwt_authenticate_1.authenticate, vendorController_1.upgradeSubscription);
+vendorRouter.patch("/verify_subscription_payment", vendorController_1.verifySubscriptionPayment);
+vendorRouter.get("/get_all_vendors", vendorController_1.get_all_vendors);
+vendorRouter.patch("/upload_avatar", jwt_authenticate_1.authenticate, multer_1.avatarUpload, vendorController_1.upload_avatar);
+vendorRouter.patch("/upload_businesslogo", jwt_authenticate_1.authenticate, multer_1.businessLogoUpload, vendorController_1.upload_businessLogo);
+vendorRouter.get("/user_craft_categories", jwt_authenticate_1.authenticate, vendorController_1.getCraftCategories);
+vendorRouter.patch("/update_vendor_info", jwt_authenticate_1.authenticate, vendorController_1.updateVendorSettings);
+vendorRouter.post("/create_recipient_code", jwt_authenticate_1.authenticate, vendorController_1.create_recipient_code);
+vendorRouter.get("/allcustomers", jwt_authenticate_1.authenticate, vendorController_1.getVendorCustomers);
+vendorRouter.get("/allpayments", jwt_authenticate_1.authenticate, vendorController_1.getVendorPayments);
+vendorRouter.get("/vendorstats", jwt_authenticate_1.authenticate, vendorController_1.getVendorStats);
+vendorRouter.get("/vendor-orders/pending-shipping", jwt_authenticate_1.authenticate, orderController_1.getVendorPendingShippingOrders);
+vendorRouter.post("/upload_kyc", jwt_authenticate_1.authenticate, multer_1.kycUpload, vendorController_1.uploadKYC);
+vendorRouter.post("/google-verify", vendorController_1.googleVerify);
+vendorRouter.post("/google-complete", vendorController_1.googleCompleteSignup);
+// Vendor settings routes
+vendorRouter.patch("/change_password", jwt_authenticate_1.authenticate, vendorController_1.changePassword);
+vendorRouter.patch("/change_location", jwt_authenticate_1.authenticate, vendorController_1.changeLocation);
+vendorRouter.patch("/change_email", jwt_authenticate_1.authenticate, vendorController_1.changeEmailAddress);
+vendorRouter.patch("/verify_email", jwt_authenticate_1.authenticate, vendorController_1.verifyEmailChange);
+vendorRouter.patch("/update_store_details", jwt_authenticate_1.authenticate, vendorController_1.changeStoreDetails);
+vendorRouter.patch("/order/:productId/update-shipping", jwt_authenticate_1.authenticate, orderController_1.updateProductShippingFee);
+vendorRouter.patch("/orders/:orderId/items/:productId/agree-shipping", jwt_authenticate_1.authenticate, orderController_1.setOrderItemShippingFee);
+// Business profile routes
+vendorRouter.patch("/upload_business_video", jwt_authenticate_1.authenticate, multer_1.businessVideoUpload, vendorController_1.uploadBusinessVideo);
+vendorRouter.patch("/upload_work_tools", jwt_authenticate_1.authenticate, multer_1.workToolsUpload, vendorController_1.uploadWorkTools);
+// Refresh token route
+vendorRouter.post("/refresh_token", vendorController_1.refreshTokenVendor);
+exports.default = vendorRouter;

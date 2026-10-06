@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Renewal Reminder - Mbaay Vendor Subscription</title>
+    <style type="text/css">
+      body {
+        margin: 0;
+        padding: 0;
+        min-width: 100% !important;
+        background-color: #f8f8f8;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        color: #333;
+      }
+      .container {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      table {
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 100%;
+      }
+      td {
+        padding: 0;
+        vertical-align: top;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Main Wrapper -->
+    <table role="presentation">
+      <tr>
+        <td style="background-color: #f8f8f8; padding: 20px 0">
+          <!-- Container Table -->
+          <table
+            role="presentation"
+            style="
+              width: 100%;
+              max-width: 600px;
+              margin: 0 auto;
+              background-color: #ffffff;
+            "
+          >
+            <!-- HEADER -->
+            <tr>
+              <td
+                style="
+                  background: linear-gradient(135deg, #ff710b 0%, #ff8a2e 100%);
+                  padding: 30px 30px;
+                  text-align: center;
+                "
+              >
+                <table role="presentation" style="width: 100%">
+                  <tr>
+                    <!-- Added Mbaay logo -->
+                    <td style="text-align: center">
+                      <img
+                        src="/images/mbaay-logo.png"
+                        alt="Mbaay Logo"
+                        style="
+                          max-width: 180px;
+                          height: auto;
+                          margin-bottom: 15px;
+                          display: block;
+                        "
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center">
+                      <div
+                        style="
+                          font-size: 14px;
+                          color: white;
+                          opacity: 0.95;
+                          font-weight: 300;
+                        "
+                      >
+                        Celebrating Arts & Traditions
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- MAIN CONTENT -->
+            <tr>
+              <td style="background-color: #fafafa; padding: 50px 30px">
+                <!-- Greeting -->
+                <div
+                  style="
+                    font-size: 24px;
+                    font-weight: 700;
+                    color: #1a1a1a;
+                    margin-bottom: 20px;
+                  "
+                >
+                  Hello, <%= vendorName %>!
+                </div>
+
+                <!-- Message -->
+                <div
+                  style="
+                    color: #555;
+                    font-size: 15px;
+                    line-height: 1.8;
+                    margin: 20px 0;
+                  "
+                >
+                  Thank you for being part of the Mbaay community! We're
+                  thrilled to showcase your beautiful arts and traditional
+                  creations to our customers.
+                </div>
+
+                <!-- Alert Box with email-safe inline styles -->
+                <table
+                  role="presentation"
+                  style="
+                    width: 100%;
+                    background-color: #fff3e0;
+                    border-left: 4px solid #ff710b;
+                    margin: 25px 0;
+                  "
+                >
+                  <tr>
+                    <td style="padding: 20px">
+                      <div
+                        style="
+                          color: #ff710b;
+                          font-weight: 700;
+                          font-size: 16px;
+                          margin-bottom: 8px;
+                        "
+                      >
+                        ⏰ Action Required: Subscription Expiring Soon
+                      </div>
+                      <div
+                        style="
+                          color: #e65100;
+                          font-size: 14px;
+                          line-height: 1.5;
+                        "
+                      >
+                        Your vendor subscription will
+                        <span style="color: #ff710b; font-weight: 600"
+                          >expire on <%= expirationDate %></span
+                        >. After this date, your shop will be suspended and your
+                        account will be limited.
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Subscription Info using table structure -->
+                <table
+                  role="presentation"
+                  style="
+                    width: 100%;
+                    background-color: white;
+                    border: 1px solid #f0f0f0;
+                    margin: 25px 0;
+                  "
+                >
+                  <tr>
+                    <td
+                      style="
+                        padding: 12px 25px;
+                        border-bottom: 1px solid #f5f5f5;
+                        font-size: 14px;
+                      "
+                    >
+                      <span style="color: #999; font-weight: 600"
+                        >Current Plan:</span
+                      >
+                    </td>
+                    <td
+                      style="
+                        padding: 12px 25px;
+                        border-bottom: 1px solid #f5f5f5;
+                        font-size: 14px;
+                        text-align: right;
+                      "
+                    >
+                      <span style="color: #1a1a1a; font-weight: 500"
+                        ><%= planName %></span
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 12px 25px;
+                        border-bottom: 1px solid #f5f5f5;
+                        font-size: 14px;
+                      "
+                    >
+                      <span style="color: #999; font-weight: 600"
+                        >Expiration Date:</span
+                      >
+                    </td>
+                    <td
+                      style="
+                        padding: 12px 25px;
+                        border-bottom: 1px solid #f5f5f5;
+                        font-size: 14px;
+                        text-align: right;
+                      "
+                    >
+                      <span style="color: #1a1a1a; font-weight: 500"
+                        ><%= expirationDate %></span
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 12px 25px;
+                        border-bottom: 1px solid #f5f5f5;
+                        font-size: 14px;
+                      "
+                    >
+                      <span style="color: #999; font-weight: 600"
+                        >Days Remaining:</span
+                      >
+                    </td>
+                    <td
+                      style="
+                        padding: 12px 25px;
+                        border-bottom: 1px solid #f5f5f5;
+                        font-size: 14px;
+                        text-align: right;
+                      "
+                    >
+                      <span style="color: #ff710b; font-weight: 700"
+                        ><%= daysRemaining %> Days</span
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 25px; font-size: 14px">
+                      <span style="color: #999; font-weight: 600"
+                        >Renewal Cost:</span
+                      >
+                    </td>
+                    <td
+                      style="
+                        padding: 12px 25px;
+                        font-size: 14px;
+                        text-align: right;
+                      "
+                    >
+                      <span style="color: #1a1a1a; font-weight: 500"
+                        ><%= renewalPrice %></span
+                      >
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- What You Lose -->
+                <div
+                  style="
+                    color: #1a1a1a;
+                    font-weight: 700;
+                    font-size: 16px;
+                    margin: 30px 0 15px 0;
+                  "
+                >
+                  <span style="color: #ff710b"
+                    >What happens if you don't renew?</span
+                  >
+                </div>
+
+                <!-- Benefits List 1 -->
+                <table role="presentation" style="width: 100%">
+                  <tr>
+                    <td style="padding: 10px 0; font-size: 14px; color: #555">
+                      <span
+                        style="
+                          color: #ff710b;
+                          font-weight: bold;
+                          margin-right: 12px;
+                        "
+                        >✗</span
+                      >Only 5 of your products will remain active & visible
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; font-size: 14px; color: #555">
+                      <span
+                        style="
+                          color: #ff710b;
+                          font-weight: bold;
+                          margin-right: 12px;
+                        "
+                        >✗</span
+                      >You won't be able to upload or add new products
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; font-size: 14px; color: #555">
+                      <span
+                        style="
+                          color: #ff710b;
+                          font-weight: bold;
+                          margin-right: 12px;
+                        "
+                        >✗</span
+                      >All other products will be hidden from customer searches
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; font-size: 14px; color: #555">
+                      <span
+                        style="
+                          color: #ff710b;
+                          font-weight: bold;
+                          margin-right: 12px;
+                        "
+                        >✗</span
+                      >Limited shop functionality until renewal
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; font-size: 14px; color: #555">
+                      <span
+                        style="
+                          color: #ff710b;
+                          font-weight: bold;
+                          margin-right: 12px;
+                        "
+                        >✓</span
+                      >You can still access your vendor dashboard to manage your
+                      account
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- What You Keep -->
+                <div
+                  style="
+                    color: #1a1a1a;
+                    font-weight: 700;
+                    font-size: 16px;
+                    margin: 30px 0 15px 0;
+                  "
+                >
+                  <span style="color: #ff710b">Why renew today?</span>
+                </div>
+
+                <!-- Benefits List 2 -->
+                <table role="presentation" style="width: 100%">
+                  <tr>
+                    <td style="padding: 10px 0; font-size: 14px; color: #555">
+                      <span
+                        style="
+                          color: #ff710b;
+                          font-weight: bold;
+                          margin-right: 12px;
+                        "
+                        >✓</span
+                      >Full access to showcase all your products
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; font-size: 14px; color: #555">
+                      <span
+                        style="
+                          color: #ff710b;
+                          font-weight: bold;
+                          margin-right: 12px;
+                        "
+                        >✓</span
+                      >Upload & manage unlimited products anytime
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; font-size: 14px; color: #555">
+                      <span
+                        style="
+                          color: #ff710b;
+                          font-weight: bold;
+                          margin-right: 12px;
+                        "
+                        >✓</span
+                      >Complete visibility to thousands of art lovers
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; font-size: 14px; color: #555">
+                      <span
+                        style="
+                          color: #ff710b;
+                          font-weight: bold;
+                          margin-right: 12px;
+                        "
+                        >✓</span
+                      >Full seller analytics and detailed reports
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; font-size: 14px; color: #555">
+                      <span
+                        style="
+                          color: #ff710b;
+                          font-weight: bold;
+                          margin-right: 12px;
+                        "
+                        >✓</span
+                      >Priority support and marketing tools
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- CTA Button -->
+                <table
+                  role="presentation"
+                  style="width: 100%; margin: 35px 0 25px 0"
+                >
+                  <tr>
+                    <td style="text-align: center">
+                      <a
+                        href="<%= renewalLink %>"
+                        style="
+                          display: inline-block;
+                          background-color: #ff710b;
+                          color: white;
+                          padding: 15px 45px;
+                          text-decoration: none;
+                          border-radius: 6px;
+                          font-weight: 600;
+                          font-size: 16px;
+                          box-shadow: 0 4px 12px rgba(255, 113, 11, 0.3);
+                        "
+                        >Renew Your Subscription Now</a
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center; padding-top: 15px">
+                      <a
+                        href="<%= plansLink %>"
+                        style="
+                          color: #ff710b;
+                          text-decoration: none;
+                          font-size: 14px;
+                          font-weight: 500;
+                        "
+                        >View Other Plans →</a
+                      >
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Support Message -->
+                <div
+                  style="
+                    text-align: center;
+                    color: #999;
+                    font-size: 13px;
+                    line-height: 1.8;
+                    margin-top: 30px;
+                  "
+                >
+                  Questions? Our support team is here to help!<br />
+                  Reply to this email or contact us at
+                  <a
+                    href="mailto:<%= supportEmail %>"
+                    style="color: #ff710b; text-decoration: none"
+                    ><%= supportEmail %></a
+                  >
+                </div>
+              </td>
+            </tr>
+
+            <!-- FOOTER -->
+            <tr>
+              <td
+                style="
+                  background-color: #2a2a2a;
+                  color: #fff;
+                  padding: 35px 30px;
+                  text-align: center;
+                  font-size: 13px;
+                  line-height: 1.8;
+                "
+              >
+                <!-- Need Help Section -->
+                <div style="margin-bottom: 20px">
+                  <div
+                    style="
+                      color: #ff710b;
+                      font-weight: 700;
+                      margin-bottom: 10px;
+                      font-size: 14px;
+                    "
+                  >
+                    Need Help?
+                  </div>
+                  <a
+                    href="<%= supportLink %>"
+                    style="
+                      color: #aaa;
+                      text-decoration: none;
+                      margin: 0 10px;
+                      display: inline-block;
+                    "
+                    >Contact Support</a
+                  >
+                  <a
+                    href="<%= faqLink %>"
+                    style="
+                      color: #aaa;
+                      text-decoration: none;
+                      margin: 0 10px;
+                      display: inline-block;
+                    "
+                    >FAQ</a
+                  >
+                  <a
+                    href="<%= docsLink %>"
+                    style="
+                      color: #aaa;
+                      text-decoration: none;
+                      margin: 0 10px;
+                      display: inline-block;
+                    "
+                    >Documentation</a
+                  >
+                </div>
+
+                <!-- Divider -->
+                <div style="border-top: 1px solid #444; margin: 20px 0"></div>
+
+                <!-- Links Section -->
+                <div style="margin-bottom: 20px">
+                  <a
+                    href="<%= dashboardLink %>"
+                    style="
+                      color: #aaa;
+                      text-decoration: none;
+                      margin: 0 10px;
+                      display: inline-block;
+                    "
+                    >Vendor Dashboard</a
+                  >
+                  <a
+                    href="<%= accountSettingsLink %>"
+                    style="
+                      color: #aaa;
+                      text-decoration: none;
+                      margin: 0 10px;
+                      display: inline-block;
+                    "
+                    >Account Settings</a
+                  >
+                  <a
+                    href="<%= privacyLink %>"
+                    style="
+                      color: #aaa;
+                      text-decoration: none;
+                      margin: 0 10px;
+                      display: inline-block;
+                    "
+                    >Privacy Policy</a
+                  >
+                </div>
+
+                <!-- Copyright -->
+                <div style="color: #666; font-size: 12px; margin-top: 20px">
+                  © 2025 Mbaay. All rights reserved. | Celebrating Global Arts &
+                  Traditions
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

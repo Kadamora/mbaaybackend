@@ -1,0 +1,138 @@
+1. Dictionary & String Processing – Word Frequency Counter
+Write a function that takes a sentence as input and returns a dictionary where each word is a key, and its value is the number of times it appears in the sentence. Ignore capitalization and punctuation.
+
+Hint:
+Use .split() to break the sentence into words.
+Convert words to lowercase for uniformity.
+Use a dictionary to store counts.
+Example Input:
+sentence = "Hello world! Hello everyone."
+
+Expected Output:
+{"hello": 2, "world": 1, "everyone": 1}
+
+
+2. Tuples & Boolean – Checking for Unique Elements
+Write a function that accepts a tuple of numbers and returns True if all elements in the tuple are unique, otherwise False.
+
+Hint:
+Convert the tuple to a set() and compare its length with the original tuple.
+Example Input:
+
+nums = (1, 2, 3, 4, 5, 5)
+Expected Output:
+
+False
+3. Loops & String – Extract Digits from String
+Write a function that extracts only the digits from a given string and returns them as an integer.
+
+Hint:
+Iterate through the string using a loop.
+Use isdigit() to check if a character is a number.
+Concatenate and convert it into an integer.
+Example Input:
+
+text = "My number is 4a5b6c7d."
+Expected Output:
+
+4567
+4. Functions & Dictionary – Convert a List of Tuples to a Dictionary
+Write a function that takes a list of tuples where each tuple contains a name and an age, and returns a dictionary with names as keys and ages as values.
+
+Hint:
+Use a loop to iterate through the tuples.
+Assign each tuple's first element as a key and the second as a value.
+Example Input:
+
+people = [("Alice", 25), ("Bob", 30), ("Charlie", 22)]
+Expected Output:
+
+
+{"Alice": 25, "Bob": 30, "Charlie": 22}
+5. Conditional Statements & Input – Guess the Number
+Write a program that asks the user to guess a randomly generated number between 1 and 10. The user gets 3 attempts.
+
+Hint:
+Use random.randint(1, 10) to generate a number.
+Use a loop to give multiple attempts.
+Provide hints like "Too high!" or "Too low!" if the guess is incorrect.
+Example Input:
+python
+Copy code
+
+Guess a number: 5  
+Expected Output:
+
+Too low! Try again.
+or
+
+
+Correct! You guessed it!
+6. Loops & Dictionary – Count Even and Odd Numbers
+Write a function that takes a list of integers and returns a dictionary with two keys: "even" and "odd", counting how many even and odd numbers exist.
+
+Hint:
+Use the modulus operator % to check for even/odd numbers.
+Store the count in a dictionary.
+Example Input:
+python
+Copy code
+
+numbers = [1, 2, 3, 4, 5, 6]
+Expected Output:
+python
+Copy code
+
+{"even": 3, "odd": 3}
+7. Tuples & Functions – Find the Max and Min from a Tuple
+Write a function that takes a tuple of numbers and returns the largest and smallest number.
+
+Hint:
+Use the built-in max() and min() functions.
+Example Input:
+
+values = (10, 25, 8, 34, 5)
+Expected Output:
+
+(34, 5)
+8. Boolean & String – Check if a String is a Palindrome
+Write a function that returns True if a string is a palindrome (ignoring spaces and case), otherwise False.
+
+Hint:
+Convert the string to lowercase and remove spaces.
+Compare it to its reversed version using slicing.
+Example Input:
+
+text = "Madam In Eden Im Adam"
+Expected Output:
+
+True
+9. Nested Loops & Patterns – Print a Pyramid
+Write a program that takes an integer n as input and prints a pyramid pattern of *.
+
+Hint:
+Use nested loops: The outer loop controls the rows, and the inner loop controls the spaces and *.
+Example Input:
+
+n = 3
+Expected Output:
+
+  *  
+ ***  
+*****
+10. Function & Conditional Statements – Grade Calculator
+Write a function that takes a student's score and returns a grade using the following rules:
+
+90-100: "A"
+80-89: "B"
+70-79: "C"
+60-69: "D"
+Below 60: "F"
+Hint:
+Use if-elif-else statements to categorize the score.
+Example Input:
+
+score = 85
+Expected Output:
+
+"B"
