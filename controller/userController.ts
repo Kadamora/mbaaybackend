@@ -13,6 +13,7 @@ import { OAuth2Client } from "google-auth-library";
 import notificationsModel from "../model/notificationsModel";
 import { VendorCommunityModel } from "../model/communityModel";
 import mongoose from "mongoose";
+import { validateEmailDeliverable } from "../utils/emailValidation";
 
 const client = new OAuth2Client(process.env.GOOGLE_ID);
 
@@ -66,6 +67,23 @@ export const googleAuthUser = async (req: any, res: any) => {
 export const create_user = async (req: Request, res: any) => {
   try {
     const { name, email, password, phoneNumber } = req.body;
+
+    // Block bots / disposable / non-existent emails: don't register, don't mail.
+    const emailCheck = await validateEmailDeliverable(email);
+    if (!emailCheck.valid) {
+      return res.status(400).json({ message: emailCheck.reason });
+    }
+
+    // Prevent duplicate accounts for the same email.
+    const existingUser = await userModel.findOne({
+      email: String(email).trim().toLowerCase(),
+    });
+    if (existingUser) {
+      return res
+        .status(409)
+        .json({ message: "An account with this email already exists." });
+    }
+
     function generateOTP() {
       let otp = Math.floor(10000 + Math.random() * 90000).toString();
       while (otp.length < 5) {

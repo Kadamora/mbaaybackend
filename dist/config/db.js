@@ -13,6 +13,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DbConnect = void 0;
+// const dns = require("node:dns")
+const node_dns_1 = __importDefault(require("node:dns"));
+node_dns_1.default.setServers(["8.8.8.8", "1.1.1.1"]);
 const mongoose_1 = __importDefault(require("mongoose"));
 const uri = "mongodb+srv://mbaaycom_db_user:mbaaystore@cluster0.av0sw4p.mongodb.net/mbaayDb?retryWrites=true&w=majority&appName=Cluster0";
 const DbConnect = () => __awaiter(void 0, void 0, void 0, function* () {
