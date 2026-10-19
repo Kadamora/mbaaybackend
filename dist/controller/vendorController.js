@@ -88,11 +88,41 @@ const googleVerify = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         const { email, name, picture } = payload;
         let vendor = yield vendorModel_1.vendorModel.findOne({ email });
         if (vendor) {
-            const authToken = jsonwebtoken_1.default.sign({ id: vendor._id, email: vendor.email }, process.env.JWT_SECRET, { expiresIn: "7d" });
+            if (vendor.verificationStatus !== "Approved") {
+                // Notify vendor about unverified status
+                yield notificationsModel_1.default.create({
+                    recipient: vendor._id,
+                    type: "System",
+                    title: "Login Attempt",
+                    message: `Your account is not yet verified. Please wait for admin approval.`,
+                    isRead: false,
+                    metadata: { vendorId: vendor._id },
+                });
+                return res.status(200).json({
+                    message: "You have not been verified",
+                });
+            }
+            const accessToken = jsonwebtoken_1.default.sign({ _id: vendor._id, email: vendor.email, role: "vendor" }, environmentVariables_1.EnvironmentVariables.JWT_SECRET, { expiresIn: "15m" });
+            const refreshToken = jsonwebtoken_1.default.sign({ _id: vendor._id }, process.env.JWT_REFRESH_SECRET || environmentVariables_1.EnvironmentVariables.JWT_SECRET, {
+                expiresIn: "7d",
+            });
+            // Store refresh token in DB
+            vendor.refreshToken = refreshToken;
+            yield vendor.save();
+            // Notify vendor about successful login
+            yield notificationsModel_1.default.create({
+                recipient: vendor._id,
+                type: "System",
+                title: "Login Successful",
+                message: `You have successfully logged into your vendor account.`,
+                isRead: false,
+                metadata: { vendorId: vendor._id },
+            });
             return res.status(200).json({
-                message: "Login successful",
-                token: authToken,
-                vendor,
+                message: "Successfully logged in.",
+                accessToken,
+                refreshToken,
+                user: { id: vendor._id, name: vendor.userName },
             });
         }
         const tempToken = jsonwebtoken_1.default.sign({ email, name, picture }, process.env.JWT_SECRET, { expiresIn: "30m" });
@@ -176,11 +206,9 @@ const googleCompleteSignup = (req, res) => __awaiter(void 0, void 0, void 0, fun
         catch (error) {
             console.error("Error adding vendor to Mbaay community:", error);
         }
-        const authToken = jsonwebtoken_1.default.sign({ _id: vendor._id, email: vendor.email }, process.env.JWT_SECRET, { expiresIn: "7d" });
         return res.status(200).json({
-            message: "Vendor created successfully",
-            token: authToken,
-            vendor,
+            message: "Vendor created and assigned to an admin for approval",
+            data: vendor,
         });
     }
     catch (error) {
