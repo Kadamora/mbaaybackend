@@ -160,8 +160,15 @@ io.on("connection", (socket) => {
   });
 });
 
+const allowedOrigins = ["https://www.mbaay.com", "https://mbaay.com", "https://mbaay-admin-panel.vercel.app/", "https://www.mbaay-admin-panel.vercel.app/"];
+
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  }),
+);
 
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/vendor", vendorRouter);

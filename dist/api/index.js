@@ -135,8 +135,12 @@ io.on("connection", (socket) => {
         console.log("❌ User disconnected:", socket.id);
     });
 });
+const allowedOrigins = ["https://www.mbaay.com", "https://mbaay.com", "https://mbaay-admin-panel.vercel.app/", "https://www.mbaay-admin-panel.vercel.app/"];
 app.use(express_1.default.json());
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({
+    origin: allowedOrigins,
+    credentials: true,
+}));
 app.use("/api/v1/user", userRouter_1.default);
 app.use("/api/v1/vendor", vendorRouter_1.default);
 app.use("/api/v1/admin", adminRouter_1.default);
