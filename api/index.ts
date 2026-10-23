@@ -160,7 +160,16 @@ io.on("connection", (socket) => {
   });
 });
 
-const allowedOrigins = ["https://www.mbaay.com", "https://mbaay.com", "https://mbaay-admin-panel.vercel.app/", "https://www.mbaay-admin-panel.vercel.app/"];
+// CORS allowlist — the SINGLE source of truth. Edit it HERE in api/index.ts,
+// never in dist/ (dist is regenerated from this file by `npm run build`, which
+// discards any hand-edits). No trailing slashes: an Origin header never has one.
+const allowedOrigins = [
+  "https://www.mbaay.com",
+  "https://mbaay.com",
+  "https://mbaayadmin-v9wzw.ondigitalocean.app",
+  "https://mbaay-admin-panel.vercel.app",
+  /^http:\/\/localhost:\d+$/, // any localhost port, for local development
+];
 
 app.use(express.json());
 app.use(
