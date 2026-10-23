@@ -12,14 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshTokenAdmin = exports.editMbaayCommunityInfo = exports.editAdminProfile = exports.getAdminPaymentsAndInvoices = exports.deleteAdminProduct = exports.updateAdminProduct = exports.getOneAdminProduct = exports.getAdminProducts = exports.getOneOrderForAdmin = exports.getAdminDashboardStats = exports.getAdminNotifications = exports.sendPrivateMessage = exports.sendBroadcastMessage = exports.getAllReviews = exports.getCustomersAndPayments = exports.getAllAdmins = exports.getAllUsers = exports.getAllVendors = exports.blockOrDeleteUser = exports.getAllOrders = exports.getAllCommunityPosts = exports.createCommunityPost = exports.getMbaayCommunity = exports.clearCustomerCareDataForTesting = exports.createMbaayCommunityOnStartup = exports.findOneUser = exports.find_one_vendor = exports.viewAllKYCRequests = exports.rejectKYC = exports.approveKYC = exports.getChatMessages_customerCare = exports.getCustomerCareChats = exports.sendcustomercareMessage = exports.startCustomerCareChat = exports.getVendorDetails = exports.login_admin = exports.getAnAdmin = exports.find_one_admin = exports.approveOrRejectVendor = exports.create_admin = void 0;
+exports.logoutAdmin = exports.refreshTokenAdmin = exports.editMbaayCommunityInfo = exports.editAdminProfile = exports.getAdminPaymentsAndInvoices = exports.deleteAdminProduct = exports.updateAdminProduct = exports.getOneAdminProduct = exports.getAdminProducts = exports.getOneOrderForAdmin = exports.getAdminDashboardStats = exports.getAdminNotifications = exports.sendPrivateMessage = exports.sendBroadcastMessage = exports.getAllReviews = exports.getCustomersAndPayments = exports.getAllAdmins = exports.getAllUsers = exports.getAllVendors = exports.blockOrDeleteUser = exports.getAllOrders = exports.getAllCommunityPosts = exports.createCommunityPost = exports.getMbaayCommunity = exports.clearCustomerCareDataForTesting = exports.createMbaayCommunityOnStartup = exports.findOneUser = exports.find_one_vendor = exports.viewAllKYCRequests = exports.rejectKYC = exports.approveKYC = exports.getChatMessages_customerCare = exports.getCustomerCareChats = exports.sendcustomercareMessage = exports.startCustomerCareChat = exports.getVendorDetails = exports.login_admin = exports.getAnAdmin = exports.find_one_admin = exports.approveOrRejectVendor = exports.create_admin = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const adminModel_1 = require("../model/adminModel");
 const vendorModel_1 = require("../model/vendorModel");
 const notificationsModel_1 = __importDefault(require("../model/notificationsModel"));
-const environmentVariables_1 = require("../Environment/environmentVariables");
 const mongoose_1 = __importDefault(require("mongoose"));
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const token_1 = require("../utils/token");
 const userModel_1 = require("../model/userModel");
 const chatModel_1 = __importDefault(require("../model/chatModel"));
 const messageModel_1 = __importDefault(require("../model/messageModel"));
@@ -214,10 +213,12 @@ const login_admin = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         if (!isPasswordValid) {
             return res.status(401).json({ message: "Invalid credentials." });
         }
-        const accessToken = jsonwebtoken_1.default.sign({ _id: admin._id, name: admin.name, role: admin.role }, environmentVariables_1.EnvironmentVariables.JWT_SECRET, { expiresIn: "15m" });
-        const refreshToken = jsonwebtoken_1.default.sign({ _id: admin._id }, process.env.JWT_REFRESH_SECRET || environmentVariables_1.EnvironmentVariables.JWT_SECRET, {
-            expiresIn: "7d",
+        const accessToken = (0, token_1.generateAccessToken)({
+            _id: admin._id,
+            name: admin.name,
+            role: admin.role,
         });
+        const refreshToken = (0, token_1.generateRefreshToken)({ _id: admin._id });
         // Store refresh token in DB
         admin.refreshToken = refreshToken;
         yield admin.save();
@@ -1935,14 +1936,18 @@ const refreshTokenAdmin = (req, res) => __awaiter(void 0, void 0, void 0, functi
             return res.status(400).json({ message: "Refresh token is required" });
         }
         // Verify refresh token
-        const decoded = jsonwebtoken_1.default.verify(refreshToken, process.env.JWT_REFRESH_SECRET || environmentVariables_1.EnvironmentVariables.JWT_SECRET);
+        const decoded = (0, token_1.verifyRefreshToken)(refreshToken);
         // Find admin by ID and check if refresh token matches
         const admin = yield adminModel_1.adminModel.findById(decoded._id);
         if (!admin || admin.refreshToken !== refreshToken) {
             return res.status(401).json({ message: "Invalid refresh token" });
         }
         // Generate new access token
-        const accessToken = jsonwebtoken_1.default.sign({ _id: admin._id, name: admin.name, role: admin.role }, environmentVariables_1.EnvironmentVariables.JWT_SECRET, { expiresIn: "15m" });
+        const accessToken = (0, token_1.generateAccessToken)({
+            _id: admin._id,
+            name: admin.name,
+            role: admin.role,
+        });
         return res.status(200).json({
             message: "Token refreshed successfully",
             accessToken,
@@ -1955,3 +1960,19 @@ const refreshTokenAdmin = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.refreshTokenAdmin = refreshTokenAdmin;
+const logoutAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Revoke the stored refresh token so it can no longer renew the session.
+        yield adminModel_1.adminModel.findByIdAndUpdate(req.user._id, {
+            $unset: { refreshToken: "" },
+        });
+        return res.status(200).json({ message: "Logged out successfully." });
+    }
+    catch (error) {
+        return res.status(500).json({
+            message: "An error occurred",
+            error: error.message,
+        });
+    }
+});
+exports.logoutAdmin = logoutAdmin;

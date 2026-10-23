@@ -8,6 +8,7 @@ const adminRouter = (0, express_1.Router)();
 adminRouter.post("/create_admin", adminController_1.create_admin);
 adminRouter.post("/login_admin", adminController_1.login_admin);
 adminRouter.post("/refresh_token", adminController_1.refreshTokenAdmin);
+adminRouter.post("/logout", jwt_authenticate_1.authenticate, adminController_1.logoutAdmin);
 adminRouter.get("/get_vendor_details/:vendorId", adminController_1.getVendorDetails);
 adminRouter.get("/find_one_admin", jwt_authenticate_1.authenticate, adminController_1.find_one_admin);
 adminRouter.get("/get_admin/:adminId", jwt_authenticate_1.authenticate, adminController_1.getAnAdmin);

@@ -28,6 +28,7 @@ import {
   uploadBusinessVideo,
   uploadWorkTools,
   refreshTokenVendor,
+  logoutVendor,
 } from "../controller/vendorController";
 import { authenticate } from "../middlewares/jwt_authenticate";
 import {
@@ -121,5 +122,6 @@ vendorRouter.patch(
 
 // Refresh token route
 vendorRouter.post("/refresh_token", refreshTokenVendor);
+vendorRouter.post("/logout", authenticate, logoutVendor);
 
 export default vendorRouter;

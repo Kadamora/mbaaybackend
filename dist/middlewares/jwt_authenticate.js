@@ -8,12 +8,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authenticate = void 0;
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const jsonwebtoken_1 = require("jsonwebtoken");
+const token_1 = require("../utils/token");
 const authenticate = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const token = (_a = req.header("Authorization")) === null || _a === void 0 ? void 0 : _a.replace("Bearer ", "");
@@ -23,12 +21,17 @@ const authenticate = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             .json({ message: "Access denied. No token provided." });
     }
     try {
-        const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
+        const decoded = (0, token_1.verifyAccessToken)(token);
         req.user = decoded;
         next();
     }
     catch (error) {
-        res.status(400).json({ message: "Invalid token." });
+        if (error instanceof jsonwebtoken_1.TokenExpiredError) {
+            return res
+                .status(401)
+                .json({ message: "Access token expired", expired: true });
+        }
+        return res.status(401).json({ message: "Invalid token." });
     }
 });
 exports.authenticate = authenticate;

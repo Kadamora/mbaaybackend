@@ -1,5 +1,6 @@
-import jwt from "jsonwebtoken";
-import { Request, Response, NextFunction } from "express";
+import { NextFunction } from "express";
+import { TokenExpiredError } from "jsonwebtoken";
+import { verifyAccessToken } from "../utils/token";
 
 export const authenticate = async (req: any, res: any, next: NextFunction) => {
   const token = req.header("Authorization")?.replace("Bearer ", "");
@@ -11,10 +12,15 @@ export const authenticate = async (req: any, res: any, next: NextFunction) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+    const decoded = verifyAccessToken(token);
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(400).json({ message: "Invalid token." });
+    if (error instanceof TokenExpiredError) {
+      return res
+        .status(401)
+        .json({ message: "Access token expired", expired: true });
+    }
+    return res.status(401).json({ message: "Invalid token." });
   }
 };

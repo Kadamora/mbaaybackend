@@ -6,6 +6,11 @@ import NotificationModel from "../model/notificationsModel";
 import { EnvironmentVariables } from "../Environment/environmentVariables";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "../utils/token";
 import { userModel } from "../model/userModel";
 import chatModel from "../model/chatModel";
 import messageModel from "../model/messageModel";
@@ -238,18 +243,12 @@ export const login_admin = async (req: Request, res: any) => {
       return res.status(401).json({ message: "Invalid credentials." });
     }
 
-    const accessToken = jwt.sign(
-      { _id: admin._id, name: admin.name, role: admin.role },
-      EnvironmentVariables.JWT_SECRET,
-      { expiresIn: "15m" },
-    );
-    const refreshToken = jwt.sign(
-      { _id: admin._id },
-      process.env.JWT_REFRESH_SECRET || EnvironmentVariables.JWT_SECRET,
-      {
-        expiresIn: "7d",
-      },
-    );
+    const accessToken = generateAccessToken({
+      _id: admin._id,
+      name: admin.name,
+      role: admin.role,
+    });
+    const refreshToken = generateRefreshToken({ _id: admin._id });
 
     // Store refresh token in DB
     admin.refreshToken = refreshToken;
@@ -2205,10 +2204,7 @@ export const refreshTokenAdmin = async (req: Request, res: any) => {
     }
 
     // Verify refresh token
-    const decoded: any = jwt.verify(
-      refreshToken,
-      process.env.JWT_REFRESH_SECRET || EnvironmentVariables.JWT_SECRET,
-    );
+    const decoded: any = verifyRefreshToken(refreshToken);
 
     // Find admin by ID and check if refresh token matches
     const admin = await adminModel.findById(decoded._id);
@@ -2217,11 +2213,11 @@ export const refreshTokenAdmin = async (req: Request, res: any) => {
     }
 
     // Generate new access token
-    const accessToken = jwt.sign(
-      { _id: admin._id, name: admin.name, role: admin.role },
-      EnvironmentVariables.JWT_SECRET,
-      { expiresIn: "15m" },
-    );
+    const accessToken = generateAccessToken({
+      _id: admin._id,
+      name: admin.name,
+      role: admin.role,
+    });
 
     return res.status(200).json({
       message: "Token refreshed successfully",
@@ -2231,5 +2227,21 @@ export const refreshTokenAdmin = async (req: Request, res: any) => {
     return res
       .status(401)
       .json({ message: "Invalid refresh token", error: error.message });
+  }
+};
+
+export const logoutAdmin = async (req: any, res: any) => {
+  try {
+    // Revoke the stored refresh token so it can no longer renew the session.
+    await adminModel.findByIdAndUpdate(req.user._id, {
+      $unset: { refreshToken: "" },
+    });
+
+    return res.status(200).json({ message: "Logged out successfully." });
+  } catch (error: any) {
+    return res.status(500).json({
+      message: "An error occurred",
+      error: error.message,
+    });
   }
 };

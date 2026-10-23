@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshTokenVendor = exports.uploadWorkTools = exports.uploadBusinessVideo = exports.changeStoreDetails = exports.verifyEmailChange = exports.changeEmailAddress = exports.changeLocation = exports.changePassword = exports.uploadKYC = exports.getVendorStats = exports.getVendorPayments = exports.getVendorCustomers = exports.getVendorInvoices = exports.verifyOtpAndResetPassword = exports.forgetPassword = exports.create_recipient_code = exports.getCraftCategories = exports.updateVendorSettings = exports.upload_businessLogo = exports.upload_avatar = exports.get_all_vendors = exports.verifySubscriptionPayment = exports.upgradeSubscription = exports.uploadReturnPolicy = exports.find_one_vendor = exports.login_vendor = exports.create_vendor = exports.googleCompleteSignup = exports.googleVerify = void 0;
+exports.logoutVendor = exports.refreshTokenVendor = exports.uploadWorkTools = exports.uploadBusinessVideo = exports.changeStoreDetails = exports.verifyEmailChange = exports.changeEmailAddress = exports.changeLocation = exports.changePassword = exports.uploadKYC = exports.getVendorStats = exports.getVendorPayments = exports.getVendorCustomers = exports.getVendorInvoices = exports.verifyOtpAndResetPassword = exports.forgetPassword = exports.create_recipient_code = exports.getCraftCategories = exports.updateVendorSettings = exports.upload_businessLogo = exports.upload_avatar = exports.get_all_vendors = exports.verifySubscriptionPayment = exports.upgradeSubscription = exports.uploadReturnPolicy = exports.find_one_vendor = exports.login_vendor = exports.create_vendor = exports.googleCompleteSignup = exports.googleVerify = void 0;
 const path_1 = __importDefault(require("path"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const vendorModel_1 = require("../model/vendorModel");
@@ -21,7 +21,6 @@ const email_1 = require("../config/email");
 const ejs_1 = __importDefault(require("ejs"));
 const adminModel_1 = require("../model/adminModel");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const environmentVariables_1 = require("../Environment/environmentVariables");
 const cloudinary_1 = require("../config/cloudinary");
 const axios_1 = __importDefault(require("axios"));
 const invoiceModel_1 = require("../model/invoiceModel");
@@ -29,6 +28,7 @@ const notificationsModel_1 = __importDefault(require("../model/notificationsMode
 const google_auth_library_1 = require("google-auth-library");
 const communityModel_1 = require("../model/communityModel");
 const emailValidation_1 = require("../utils/emailValidation");
+const token_1 = require("../utils/token");
 const PAYSTACK_SECRET_KEY = "sk_live_8e60afeb1befc22f297e02606b679decd84dbeb4";
 const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_ID);
 const accountTypeLimits = {
@@ -102,10 +102,12 @@ const googleVerify = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                     message: "You have not been verified",
                 });
             }
-            const accessToken = jsonwebtoken_1.default.sign({ _id: vendor._id, email: vendor.email, role: "vendor" }, environmentVariables_1.EnvironmentVariables.JWT_SECRET, { expiresIn: "15m" });
-            const refreshToken = jsonwebtoken_1.default.sign({ _id: vendor._id }, process.env.JWT_REFRESH_SECRET || environmentVariables_1.EnvironmentVariables.JWT_SECRET, {
-                expiresIn: "7d",
+            const accessToken = (0, token_1.generateAccessToken)({
+                _id: vendor._id,
+                email: vendor.email,
+                role: "vendor",
             });
+            const refreshToken = (0, token_1.generateRefreshToken)({ _id: vendor._id });
             // Store refresh token in DB
             vendor.refreshToken = refreshToken;
             yield vendor.save();
@@ -349,10 +351,12 @@ const login_vendor = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                 message: "You have not been verified",
             });
         }
-        const accessToken = jsonwebtoken_1.default.sign({ _id: vendor._id, email: vendor.email, role: "vendor" }, environmentVariables_1.EnvironmentVariables.JWT_SECRET, { expiresIn: "15m" });
-        const refreshToken = jsonwebtoken_1.default.sign({ _id: vendor._id }, process.env.JWT_REFRESH_SECRET || environmentVariables_1.EnvironmentVariables.JWT_SECRET, {
-            expiresIn: "7d",
+        const accessToken = (0, token_1.generateAccessToken)({
+            _id: vendor._id,
+            email: vendor.email,
+            role: "vendor",
         });
+        const refreshToken = (0, token_1.generateRefreshToken)({ _id: vendor._id });
         // Store refresh token in DB
         vendor.refreshToken = refreshToken;
         yield vendor.save();
@@ -1642,14 +1646,18 @@ const refreshTokenVendor = (req, res) => __awaiter(void 0, void 0, void 0, funct
             return res.status(400).json({ message: "Refresh token is required" });
         }
         // Verify refresh token
-        const decoded = jsonwebtoken_1.default.verify(refreshToken, process.env.JWT_REFRESH_SECRET || environmentVariables_1.EnvironmentVariables.JWT_SECRET);
+        const decoded = (0, token_1.verifyRefreshToken)(refreshToken);
         // Find vendor by ID and check if refresh token matches
         const vendor = yield vendorModel_1.vendorModel.findById(decoded._id);
         if (!vendor || vendor.refreshToken !== refreshToken) {
             return res.status(401).json({ message: "Invalid refresh token" });
         }
         // Generate new access token
-        const accessToken = jsonwebtoken_1.default.sign({ _id: vendor._id, email: vendor.email, role: "vendor" }, environmentVariables_1.EnvironmentVariables.JWT_SECRET, { expiresIn: "15m" });
+        const accessToken = (0, token_1.generateAccessToken)({
+            _id: vendor._id,
+            email: vendor.email,
+            role: "vendor",
+        });
         return res.status(200).json({
             message: "Token refreshed successfully",
             accessToken,
@@ -1662,3 +1670,19 @@ const refreshTokenVendor = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.refreshTokenVendor = refreshTokenVendor;
+const logoutVendor = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Revoke the stored refresh token so it can no longer renew the session.
+        yield vendorModel_1.vendorModel.findByIdAndUpdate(req.user._id, {
+            $unset: { refreshToken: "" },
+        });
+        return res.status(200).json({ message: "Logged out successfully." });
+    }
+    catch (error) {
+        return res.status(500).json({
+            message: "An error occurred",
+            error: error.message,
+        });
+    }
+});
+exports.logoutVendor = logoutVendor;

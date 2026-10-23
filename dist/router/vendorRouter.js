@@ -40,4 +40,5 @@ vendorRouter.patch("/upload_business_video", jwt_authenticate_1.authenticate, mu
 vendorRouter.patch("/upload_work_tools", jwt_authenticate_1.authenticate, multer_1.workToolsUpload, vendorController_1.uploadWorkTools);
 // Refresh token route
 vendorRouter.post("/refresh_token", vendorController_1.refreshTokenVendor);
+vendorRouter.post("/logout", jwt_authenticate_1.authenticate, vendorController_1.logoutVendor);
 exports.default = vendorRouter;
