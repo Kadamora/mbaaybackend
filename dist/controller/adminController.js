@@ -32,6 +32,14 @@ const invoiceModel_1 = require("../model/invoiceModel");
 const path_1 = __importDefault(require("path"));
 const email_1 = require("../config/email");
 const ejs_1 = __importDefault(require("ejs"));
+const adminMessageTemplatePath = path_1.default.join(__dirname, "..", "..", "view", "admin_message.ejs");
+const getRecipientDisplayName = (doc, type) => type === "vendor" ? (doc === null || doc === void 0 ? void 0 : doc.storeName) || (doc === null || doc === void 0 ? void 0 : doc.userName) : doc === null || doc === void 0 ? void 0 : doc.name;
+const renderAdminMessageEmail = (data) => ejs_1.default.renderFile(adminMessageTemplatePath, Object.assign(Object.assign({}, data), { sentAt: data.sentAt.toLocaleString("en-US", {
+        dateStyle: "medium",
+        timeStyle: "short",
+    }), actionLink: data.recipientType === "vendor"
+        ? "https://mbaay.com/vendor/dashboard"
+        : "https://mbaay.com", supportEmail: "mbaay.com@gmail.com", supportLink: "https://mbaay.com/support", privacyLink: "https://mbaay.com/privacy" }), { cache: true });
 const create_admin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { name, email, password, role } = req.body;
@@ -1286,6 +1294,23 @@ const getAllReviews = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.getAllReviews = getAllReviews;
 // Admin Messaging Functions
+const sendAdminMessageEmails = (recipients_1, payload_1, ...args_1) => __awaiter(void 0, [recipients_1, payload_1, ...args_1], void 0, function* (recipients, payload, batchSize = 10) {
+    const withEmail = recipients.filter((r) => !!r.email);
+    const subject = payload.messageType === "broadcast"
+        ? `Mbaay Announcement: ${payload.title}`
+        : `Message from Mbaay: ${payload.title}`;
+    let sent = 0;
+    let failed = 0;
+    for (let i = 0; i < withEmail.length; i += batchSize) {
+        const batch = withEmail.slice(i, i + batchSize);
+        const results = yield Promise.allSettled(batch.map((r) => __awaiter(void 0, void 0, void 0, function* () {
+            const html = yield renderAdminMessageEmail(Object.assign(Object.assign({}, payload), { recipientName: r.name, recipientType: r.type }));
+            yield (0, email_1.sendMail)(r.email, subject, html);
+        })));
+        results.forEach((result) => result.status === "fulfilled" ? sent++ : failed++);
+    }
+    return { sent, failed, skipped: recipients.length - withEmail.length };
+});
 const sendBroadcastMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const adminId = req.user._id;
@@ -1305,30 +1330,45 @@ const sendBroadcastMessage = (req, res) => __awaiter(void 0, void 0, void 0, fun
         }
         // Get recipients based on target
         let recipients = [];
+        const toRecipient = (type) => (doc) => ({
+            id: doc._id,
+            type,
+            email: doc.email,
+            name: getRecipientDisplayName(doc, type),
+        });
+        const fetchUsers = () => userModel_1.userModel
+            .find({}, "_id name email")
+            .lean()
+            .then((d) => d.map(toRecipient("user")));
+        const fetchVendors = () => vendorModel_1.vendorModel
+            .find({}, "_id storeName userName email")
+            .lean()
+            .then((d) => d.map(toRecipient("vendor")));
+        const fetchAdmins = () => adminModel_1.adminModel
+            .find({}, "_id name email")
+            .lean()
+            .then((d) => d.map(toRecipient("admin")));
         switch (targetUsers) {
-            case "all":
-                const allUsers = yield userModel_1.userModel.find({}, "_id");
-                const allVendors = yield vendorModel_1.vendorModel.find({}, "_id");
-                const allAdmins = yield adminModel_1.adminModel.find({}, "_id");
-                recipients = [
-                    ...allUsers.map((u) => ({ id: u._id, type: "user" })),
-                    ...allVendors.map((v) => ({ id: v._id, type: "vendor" })),
-                    ...allAdmins.map((a) => ({ id: a._id, type: "admin" })),
-                ];
+            case "all": {
+                const [u, v, a] = yield Promise.all([
+                    fetchUsers(),
+                    fetchVendors(),
+                    fetchAdmins(),
+                ]);
+                recipients = [...u, ...v, ...a];
                 break;
+            }
             case "users":
-                const users = yield userModel_1.userModel.find({}, "_id");
-                recipients = users.map((u) => ({ id: u._id, type: "user" }));
+                recipients = yield fetchUsers();
                 break;
             case "vendors":
-                const vendors = yield vendorModel_1.vendorModel.find({}, "_id");
-                recipients = vendors.map((v) => ({ id: v._id, type: "vendor" }));
+                recipients = yield fetchVendors();
                 break;
             case "admins":
-                const admins = yield adminModel_1.adminModel.find({}, "_id");
-                recipients = admins.map((a) => ({ id: a._id, type: "admin" }));
+                recipients = yield fetchAdmins();
                 break;
         }
+        const sentAt = new Date();
         // Create notifications for all recipients
         const notifications = recipients.map((recipient) => notificationsModel_1.default.create({
             recipient: recipient.id,
@@ -1341,10 +1381,20 @@ const sendBroadcastMessage = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 broadcast: true,
                 targetUsers,
                 adminId,
-                sentAt: new Date(),
+                sentAt,
             },
         }));
         yield Promise.all(notifications);
+        // Email delivery runs in the background so large broadcasts don't block the response
+        sendAdminMessageEmails(recipients, {
+            messageType: "broadcast",
+            title,
+            message,
+            senderName: admin.name,
+            sentAt,
+        })
+            .then(({ sent, failed, skipped }) => console.log(`📢 Broadcast "${title}" emails — sent: ${sent}, failed: ${failed}, no email: ${skipped}`))
+            .catch((err) => console.error("Broadcast email error:", err));
         return res.status(200).json({
             message: `Broadcast message sent to ${recipients.length} ${targetUsers}`,
             data: {
@@ -1352,7 +1402,8 @@ const sendBroadcastMessage = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 message,
                 targetUsers,
                 recipientsCount: recipients.length,
-                sentAt: new Date(),
+                emailRecipientsCount: recipients.filter((r) => !!r.email).length,
+                sentAt,
             },
         });
     }
@@ -1399,6 +1450,7 @@ const sendPrivateMessage = (req, res) => __awaiter(void 0, void 0, void 0, funct
         if (!recipient) {
             return res.status(404).json({ message: "Recipient not found" });
         }
+        const sentAt = new Date();
         // Create private notification
         yield notificationsModel_1.default.create({
             recipient: recipientId,
@@ -1411,9 +1463,27 @@ const sendPrivateMessage = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 privateMessage: true,
                 recipientType,
                 adminId,
-                sentAt: new Date(),
+                sentAt,
             },
         });
+        // Also deliver the message to the recipient's email (don't fail the request if mail fails)
+        let emailSent = false;
+        if (recipient.email) {
+            const { sent } = yield sendAdminMessageEmails([
+                {
+                    email: recipient.email,
+                    name: getRecipientDisplayName(recipient, recipientType),
+                    type: recipientType,
+                },
+            ], {
+                messageType: "private",
+                title,
+                message,
+                senderName: admin.name,
+                sentAt,
+            });
+            emailSent = sent > 0;
+        }
         return res.status(200).json({
             message: `Private message sent to ${recipientType}`,
             data: {
@@ -1421,7 +1491,8 @@ const sendPrivateMessage = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 recipientType,
                 title,
                 message,
-                sentAt: new Date(),
+                emailSent,
+                sentAt,
             },
         });
     }

@@ -512,20 +512,6 @@ const deleteSuspendedProducts = () => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.deleteSuspendedProducts = deleteSuspendedProducts;
-/**
- * NEW: ✅ Pay out vendors 2 BUSINESS days after an order is marked "Delivered",
- * as long as it hasn't moved into any return-related status in the meantime.
- *
- * - Only touches orders with status "Delivered" — the moment a return is
- *   requested, submitOrderReturn flips status to "Return Requested"/"Returned",
- *   so this query naturally skips it. No separate return check needed.
- * - Groups the order's items by vendor (product.poster) and pays each vendor
- *   the sum of their items' `total` via Paystack transfer, using the
- *   recipient code they set up on their vendor profile.
- * - Marks order.vendorPaid = true once payout succeeds, so it's never paid twice.
- * - Emails the vendor a payout confirmation using the same EJS template style
- *   as your other transactional mails.
- */
 const processVendorPayouts = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const now = new Date();
@@ -537,9 +523,9 @@ const processVendorPayouts = () => __awaiter(void 0, void 0, void 0, function* (
         }).populate({ path: "items.product", model: "products" });
         const payoutTemplatePath = path_1.default.join(__dirname, "..", "..", "view", "vendor_payout.ejs");
         for (const order of deliveredOrders) {
-            const eligibleDate = addBusinessDays(order.deliveryDate, 2);
+            const eligibleDate = new Date(order.deliveryDate.getTime() + 5 * 60 * 1000);
             if (now < eligibleDate) {
-                continue; // Not yet 2 business days since delivery
+                continue; // Not yet 5 minutes since delivery
             }
             // Group this order's items by vendor
             const vendorAmounts = {};
@@ -560,7 +546,7 @@ const processVendorPayouts = () => __awaiter(void 0, void 0, void 0, function* (
             for (const [vendorId, { vendor, amount }] of Object.entries(vendorAmounts)) {
                 if (amount <= 0)
                     continue;
-                if (!vendor.recipientCode) {
+                if (!vendor.paystackRecipientCode) {
                     // Vendor hasn't set up payout details — skip and flag, don't block others
                     console.error(`⚠️ Vendor ${vendor.storeName} has no recipientCode set. Skipping payout for order ${order._id}.`);
                     allPayoutsSucceeded = false;
@@ -579,7 +565,7 @@ const processVendorPayouts = () => __awaiter(void 0, void 0, void 0, function* (
                     yield orderController_1.paystack.post("/transfer", {
                         source: "balance",
                         amount: Math.round(amount * 100), // kobo
-                        recipient: vendor.recipientCode,
+                        recipient: vendor.paystackRecipientCode,
                         reason: `Payout for order ${order._id}`,
                         reference: payoutReference,
                     });
@@ -681,9 +667,9 @@ node_cron_1.default.schedule("0 0 * * *", () => __awaiter(void 0, void 0, void 0
     console.log("🗑️ Running suspended product deletion...");
     yield deleteSuspendedProducts();
 }));
-// NEW: run a few times a day so payouts go out promptly once eligible,
-// without hammering Paystack every minute
-node_cron_1.default.schedule("0 9,15 * * *", () => __awaiter(void 0, void 0, void 0, function* () {
+// NEW: run every minute so payouts go out ~5 minutes after delivery, matching
+// the 5-minute eligibility window in processVendorPayouts.
+node_cron_1.default.schedule("* * * * *", () => __awaiter(void 0, void 0, void 0, function* () {
     console.log("💸 Running vendor payout cron...");
     yield processVendorPayouts();
 }));
