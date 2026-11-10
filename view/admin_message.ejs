@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title><%= title %> - Mbaay</title>
+    <!--[if mso]>
+      <noscript>
+        <xml>
+          <o:OfficeDocumentSettings>
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+          </o:OfficeDocumentSettings>
+        </xml>
+      </noscript>
+    <![endif]-->
+    <style type="text/css">
+      /* CLIENT-SPECIFIC STYLES */
+      body,
+      table,
+      td,
+      a {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+      table,
+      td {
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+      }
+      img {
+        -ms-interpolation-mode: bicubic;
+      }
+
+      /* RESET STYLES */
+      img {
+        border: 0;
+        height: auto;
+        line-height: 100%;
+        outline: none;
+        text-decoration: none;
+      }
+      table {
+        border-collapse: collapse !important;
+      }
+      body {
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+      }
+
+      /* iOS BLUE LINKS */
+      a[x-apple-data-detectors] {
+        color: inherit !important;
+        text-decoration: none !important;
+        font-size: inherit !important;
+        font-family: inherit !important;
+        font-weight: inherit !important;
+        line-height: inherit !important;
+      }
+
+      /* MOBILE STYLES */
+      @media screen and (max-width: 600px) {
+        .email-container {
+          width: 100% !important;
+          margin: auto !important;
+        }
+        .body-padding {
+          padding: 25px 20px !important;
+        }
+      }
+    </style>
+  </head>
+  <%
+    var isBroadcast = messageType === "broadcast";
+    var accent = isBroadcast ? "#4361ee" : "#7c3aed";
+    var accentSoft = isBroadcast ? "#f5f8ff" : "#f7f3ff";
+    var accentBorder = isBroadcast ? "#e1e8ff" : "#ebe1ff";
+    var badgeText = isBroadcast ? "📢 Announcement" : "🔒 Private Message";
+    var lines = String(message || "").split(/\r?\n/);
+  %>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #f7f7f7;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    "
+  >
+    <!-- Preheader (inbox preview text) -->
+    <div
+      style="
+        display: none;
+        font-size: 1px;
+        line-height: 1px;
+        max-height: 0;
+        max-width: 0;
+        opacity: 0;
+        overflow: hidden;
+      "
+    >
+      <%= String(message || "").slice(0, 120) %>
+    </div>
+
+    <center style="width: 100%; background-color: #f7f7f7; padding: 30px 0">
+      <div style="max-width: 600px; margin: 0 auto" class="email-container">
+        <!-- Accent bar -->
+        <table
+          align="center"
+          role="presentation"
+          cellspacing="0"
+          cellpadding="0"
+          border="0"
+          width="100%"
+          style="margin: auto"
+        >
+          <tr>
+            <td
+              style="
+                background-color: <%= accent %>;
+                height: 6px;
+                line-height: 6px;
+                font-size: 0;
+                border-top-left-radius: 8px;
+                border-top-right-radius: 8px;
+              "
+            >
+              &nbsp;
+            </td>
+          </tr>
+        </table>
+
+        <!-- Header -->
+        <table
+          align="center"
+          role="presentation"
+          cellspacing="0"
+          cellpadding="0"
+          border="0"
+          width="100%"
+          style="margin: auto"
+        >
+          <tr>
+            <td
+              style="
+                background-color: #ffffff;
+                padding: 28px 0 10px;
+                text-align: center;
+              "
+            >
+              <img
+                src="https://res.cloudinary.com/dn3mokfxz/image/upload/v1737988620/new_mbaay-removebg-preview_cyimbt.png"
+                width="110"
+                alt="Mbaay"
+                style="height: auto; display: block; margin: 0 auto"
+              />
+            </td>
+          </tr>
+        </table>
+
+        <!-- Body -->
+        <table
+          align="center"
+          role="presentation"
+          cellspacing="0"
+          cellpadding="0"
+          border="0"
+          width="100%"
+          style="margin: auto"
+        >
+          <tr>
+            <td
+              class="body-padding"
+              style="
+                background-color: #ffffff;
+                padding: 20px 40px 35px;
+                color: #333333;
+              "
+            >
+              <!-- Badge -->
+              <table
+                role="presentation"
+                cellspacing="0"
+                cellpadding="0"
+                border="0"
+                align="center"
+                style="margin: 0 auto 18px"
+              >
+                <tr>
+                  <td
+                    style="
+                      background-color: <%= accentSoft %>;
+                      border: 1px solid <%= accentBorder %>;
+                      border-radius: 999px;
+                      padding: 6px 16px;
+                      font-size: 12px;
+                      font-weight: 600;
+                      letter-spacing: 0.5px;
+                      text-transform: uppercase;
+                      color: <%= accent %>;
+                    "
+                  >
+                    <%= badgeText %>
+                  </td>
+                </tr>
+              </table>
+
+              <h1
+                style="
+                  margin: 0 0 24px 0;
+                  font-size: 24px;
+                  line-height: 32px;
+                  color: #1f2937;
+                  font-weight: 700;
+                  text-align: center;
+                "
+              >
+                <%= title %>
+              </h1>
+
+              <p style="margin: 0 0 18px; font-size: 16px; line-height: 24px">
+                Hello <strong><%= recipientName || "there" %></strong>,
+              </p>
+
+              <% if (isBroadcast) { %>
+              <p
+                style="
+                  margin: 0 0 20px;
+                  font-size: 15px;
+                  line-height: 24px;
+                  color: #555555;
+                "
+              >
+                The Mbaay team has shared an update with our community:
+              </p>
+              <% } else { %>
+              <p
+                style="
+                  margin: 0 0 20px;
+                  font-size: 15px;
+                  line-height: 24px;
+                  color: #555555;
+                "
+              >
+                You have received a direct message from the Mbaay team:
+              </p>
+              <% } %>
+
+              <!-- Message card -->
+              <table
+                role="presentation"
+                cellspacing="0"
+                cellpadding="0"
+                border="0"
+                width="100%"
+                style="margin: 0 0 25px"
+              >
+                <tr>
+                  <td
+                    style="
+                      background-color: <%= accentSoft %>;
+                      border: 1px solid <%= accentBorder %>;
+                      border-left: 4px solid <%= accent %>;
+                      border-radius: 8px;
+                      padding: 22px 24px;
+                      font-size: 15px;
+                      line-height: 25px;
+                      color: #333333;
+                    "
+                  >
+                    <% lines.forEach(function (line, i) { %><%= line %><% if (i < lines.length - 1) { %><br /><% } %><% }) %>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Meta -->
+              <p
+                style="
+                  margin: 0 0 25px;
+                  font-size: 13px;
+                  line-height: 20px;
+                  color: #888888;
+                  text-align: center;
+                "
+              >
+                Sent by <strong style="color: #555555"><%= senderName || "Mbaay Admin" %></strong>
+                &middot; <%= sentAt %>
+              </p>
+
+              <!-- CTA Button -->
+              <table
+                role="presentation"
+                cellspacing="0"
+                cellpadding="0"
+                border="0"
+                align="center"
+                style="margin: 0 auto 20px"
+              >
+                <tr>
+                  <td style="background-color: <%= accent %>; border-radius: 6px">
+                    <a
+                      href="<%= actionLink %>"
+                      style="
+                        display: inline-block;
+                        padding: 12px 30px;
+                        font-size: 15px;
+                        font-weight: 600;
+                        color: #ffffff;
+                        text-decoration: none;
+                        border-radius: 6px;
+                      "
+                      >Open Mbaay</a
+                    >
+                  </td>
+                </tr>
+              </table>
+
+              <p
+                style="
+                  margin: 0;
+                  font-size: 14px;
+                  line-height: 22px;
+                  color: #666666;
+                  text-align: center;
+                "
+              >
+                <% if (isBroadcast) { %>
+                You're receiving this because you have an account on Mbaay.
+                <% } else { %>
+                Need to respond? Simply reach out to our support team and
+                we'll be happy to help.
+                <% } %>
+              </p>
+
+              <p
+                style="
+                  margin: 25px 0 0;
+                  font-size: 15px;
+                  line-height: 22px;
+                  color: #333333;
+                "
+              >
+                Best regards,<br />
+                <strong>The Mbaay Team</strong>
+              </p>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Footer -->
+        <table
+          align="center"
+          role="presentation"
+          cellspacing="0"
+          cellpadding="0"
+          border="0"
+          width="100%"
+          style="margin: auto"
+        >
+          <tr>
+            <td
+              style="
+                background-color: #ffffff;
+                border-bottom-left-radius: 8px;
+                border-bottom-right-radius: 8px;
+                padding: 20px 40px;
+                text-align: center;
+                color: #888888;
+                font-size: 12px;
+                border-top: 1px solid #f0f0f0;
+              "
+            >
+              <p style="margin: 0 0 5px">
+                © <%= new Date().getFullYear() %> Mbaay. All rights reserved.
+              </p>
+              <p style="margin: 5px 0 0">
+                If you have any questions, contact us at
+                <a
+                  href="mailto:<%= supportEmail %>"
+                  style="color: <%= accent %>; text-decoration: none"
+                  ><%= supportEmail %></a
+                >
+                or visit our
+                <a
+                  href="<%= supportLink %>"
+                  style="color: <%= accent %>; text-decoration: none"
+                  >support page</a
+                >.
+              </p>
+              <p style="margin: 10px 0 0">
+                <a
+                  href="<%= privacyLink %>"
+                  style="color: #888888; text-decoration: underline"
+                  >Privacy Policy</a
+                >
+              </p>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </center>
+  </body>
+</html>

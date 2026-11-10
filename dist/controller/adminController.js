@@ -12,14 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshTokenAdmin = exports.editMbaayCommunityInfo = exports.editAdminProfile = exports.getAdminPaymentsAndInvoices = exports.deleteAdminProduct = exports.updateAdminProduct = exports.getOneAdminProduct = exports.getAdminProducts = exports.getOneOrderForAdmin = exports.getAdminDashboardStats = exports.getAdminNotifications = exports.sendPrivateMessage = exports.sendBroadcastMessage = exports.getAllReviews = exports.getCustomersAndPayments = exports.getAllAdmins = exports.getAllUsers = exports.getAllVendors = exports.blockOrDeleteUser = exports.getAllOrders = exports.getAllCommunityPosts = exports.createCommunityPost = exports.getMbaayCommunity = exports.clearCustomerCareDataForTesting = exports.createMbaayCommunityOnStartup = exports.findOneUser = exports.find_one_vendor = exports.viewAllKYCRequests = exports.rejectKYC = exports.approveKYC = exports.getChatMessages_customerCare = exports.getCustomerCareChats = exports.sendcustomercareMessage = exports.startCustomerCareChat = exports.getVendorDetails = exports.login_admin = exports.getAnAdmin = exports.find_one_admin = exports.approveOrRejectVendor = exports.create_admin = void 0;
+exports.logoutAdmin = exports.refreshTokenAdmin = exports.editMbaayCommunityInfo = exports.editAdminProfile = exports.getAdminPaymentsAndInvoices = exports.deleteAdminProduct = exports.updateAdminProduct = exports.getOneAdminProduct = exports.getAdminProducts = exports.getOneOrderForAdmin = exports.getAdminDashboardStats = exports.getAdminNotifications = exports.sendPrivateMessage = exports.sendBroadcastMessage = exports.getAllReviews = exports.getCustomersAndPayments = exports.getAllAdmins = exports.getAllUsers = exports.getAllVendors = exports.blockOrDeleteUser = exports.getAllOrders = exports.getAllCommunityPosts = exports.createCommunityPost = exports.getMbaayCommunity = exports.clearCustomerCareDataForTesting = exports.createMbaayCommunityOnStartup = exports.findOneUser = exports.find_one_vendor = exports.viewAllKYCRequests = exports.rejectKYC = exports.approveKYC = exports.getChatMessages_customerCare = exports.getCustomerCareChats = exports.sendcustomercareMessage = exports.startCustomerCareChat = exports.getVendorDetails = exports.login_admin = exports.getAnAdmin = exports.find_one_admin = exports.approveOrRejectVendor = exports.create_admin = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const adminModel_1 = require("../model/adminModel");
 const vendorModel_1 = require("../model/vendorModel");
 const notificationsModel_1 = __importDefault(require("../model/notificationsModel"));
-const environmentVariables_1 = require("../Environment/environmentVariables");
 const mongoose_1 = __importDefault(require("mongoose"));
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const token_1 = require("../utils/token");
 const userModel_1 = require("../model/userModel");
 const chatModel_1 = __importDefault(require("../model/chatModel"));
 const messageModel_1 = __importDefault(require("../model/messageModel"));
@@ -33,6 +32,14 @@ const invoiceModel_1 = require("../model/invoiceModel");
 const path_1 = __importDefault(require("path"));
 const email_1 = require("../config/email");
 const ejs_1 = __importDefault(require("ejs"));
+const adminMessageTemplatePath = path_1.default.join(__dirname, "..", "..", "view", "admin_message.ejs");
+const getRecipientDisplayName = (doc, type) => type === "vendor" ? (doc === null || doc === void 0 ? void 0 : doc.storeName) || (doc === null || doc === void 0 ? void 0 : doc.userName) : doc === null || doc === void 0 ? void 0 : doc.name;
+const renderAdminMessageEmail = (data) => ejs_1.default.renderFile(adminMessageTemplatePath, Object.assign(Object.assign({}, data), { sentAt: data.sentAt.toLocaleString("en-US", {
+        dateStyle: "medium",
+        timeStyle: "short",
+    }), actionLink: data.recipientType === "vendor"
+        ? "https://mbaay.com/vendor/dashboard"
+        : "https://mbaay.com", supportEmail: "mbaay.com@gmail.com", supportLink: "https://mbaay.com/support", privacyLink: "https://mbaay.com/privacy" }), { cache: true });
 const create_admin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { name, email, password, role } = req.body;
@@ -214,10 +221,12 @@ const login_admin = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         if (!isPasswordValid) {
             return res.status(401).json({ message: "Invalid credentials." });
         }
-        const accessToken = jsonwebtoken_1.default.sign({ _id: admin._id, name: admin.name, role: admin.role }, environmentVariables_1.EnvironmentVariables.JWT_SECRET, { expiresIn: "15m" });
-        const refreshToken = jsonwebtoken_1.default.sign({ _id: admin._id }, process.env.JWT_REFRESH_SECRET || environmentVariables_1.EnvironmentVariables.JWT_SECRET, {
-            expiresIn: "7d",
+        const accessToken = (0, token_1.generateAccessToken)({
+            _id: admin._id,
+            name: admin.name,
+            role: admin.role,
         });
+        const refreshToken = (0, token_1.generateRefreshToken)({ _id: admin._id });
         // Store refresh token in DB
         admin.refreshToken = refreshToken;
         yield admin.save();
@@ -1285,6 +1294,23 @@ const getAllReviews = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.getAllReviews = getAllReviews;
 // Admin Messaging Functions
+const sendAdminMessageEmails = (recipients_1, payload_1, ...args_1) => __awaiter(void 0, [recipients_1, payload_1, ...args_1], void 0, function* (recipients, payload, batchSize = 10) {
+    const withEmail = recipients.filter((r) => !!r.email);
+    const subject = payload.messageType === "broadcast"
+        ? `Mbaay Announcement: ${payload.title}`
+        : `Message from Mbaay: ${payload.title}`;
+    let sent = 0;
+    let failed = 0;
+    for (let i = 0; i < withEmail.length; i += batchSize) {
+        const batch = withEmail.slice(i, i + batchSize);
+        const results = yield Promise.allSettled(batch.map((r) => __awaiter(void 0, void 0, void 0, function* () {
+            const html = yield renderAdminMessageEmail(Object.assign(Object.assign({}, payload), { recipientName: r.name, recipientType: r.type }));
+            yield (0, email_1.sendMail)(r.email, subject, html);
+        })));
+        results.forEach((result) => result.status === "fulfilled" ? sent++ : failed++);
+    }
+    return { sent, failed, skipped: recipients.length - withEmail.length };
+});
 const sendBroadcastMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const adminId = req.user._id;
@@ -1304,30 +1330,45 @@ const sendBroadcastMessage = (req, res) => __awaiter(void 0, void 0, void 0, fun
         }
         // Get recipients based on target
         let recipients = [];
+        const toRecipient = (type) => (doc) => ({
+            id: doc._id,
+            type,
+            email: doc.email,
+            name: getRecipientDisplayName(doc, type),
+        });
+        const fetchUsers = () => userModel_1.userModel
+            .find({}, "_id name email")
+            .lean()
+            .then((d) => d.map(toRecipient("user")));
+        const fetchVendors = () => vendorModel_1.vendorModel
+            .find({}, "_id storeName userName email")
+            .lean()
+            .then((d) => d.map(toRecipient("vendor")));
+        const fetchAdmins = () => adminModel_1.adminModel
+            .find({}, "_id name email")
+            .lean()
+            .then((d) => d.map(toRecipient("admin")));
         switch (targetUsers) {
-            case "all":
-                const allUsers = yield userModel_1.userModel.find({}, "_id");
-                const allVendors = yield vendorModel_1.vendorModel.find({}, "_id");
-                const allAdmins = yield adminModel_1.adminModel.find({}, "_id");
-                recipients = [
-                    ...allUsers.map((u) => ({ id: u._id, type: "user" })),
-                    ...allVendors.map((v) => ({ id: v._id, type: "vendor" })),
-                    ...allAdmins.map((a) => ({ id: a._id, type: "admin" })),
-                ];
+            case "all": {
+                const [u, v, a] = yield Promise.all([
+                    fetchUsers(),
+                    fetchVendors(),
+                    fetchAdmins(),
+                ]);
+                recipients = [...u, ...v, ...a];
                 break;
+            }
             case "users":
-                const users = yield userModel_1.userModel.find({}, "_id");
-                recipients = users.map((u) => ({ id: u._id, type: "user" }));
+                recipients = yield fetchUsers();
                 break;
             case "vendors":
-                const vendors = yield vendorModel_1.vendorModel.find({}, "_id");
-                recipients = vendors.map((v) => ({ id: v._id, type: "vendor" }));
+                recipients = yield fetchVendors();
                 break;
             case "admins":
-                const admins = yield adminModel_1.adminModel.find({}, "_id");
-                recipients = admins.map((a) => ({ id: a._id, type: "admin" }));
+                recipients = yield fetchAdmins();
                 break;
         }
+        const sentAt = new Date();
         // Create notifications for all recipients
         const notifications = recipients.map((recipient) => notificationsModel_1.default.create({
             recipient: recipient.id,
@@ -1340,10 +1381,20 @@ const sendBroadcastMessage = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 broadcast: true,
                 targetUsers,
                 adminId,
-                sentAt: new Date(),
+                sentAt,
             },
         }));
         yield Promise.all(notifications);
+        // Email delivery runs in the background so large broadcasts don't block the response
+        sendAdminMessageEmails(recipients, {
+            messageType: "broadcast",
+            title,
+            message,
+            senderName: admin.name,
+            sentAt,
+        })
+            .then(({ sent, failed, skipped }) => console.log(`📢 Broadcast "${title}" emails — sent: ${sent}, failed: ${failed}, no email: ${skipped}`))
+            .catch((err) => console.error("Broadcast email error:", err));
         return res.status(200).json({
             message: `Broadcast message sent to ${recipients.length} ${targetUsers}`,
             data: {
@@ -1351,7 +1402,8 @@ const sendBroadcastMessage = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 message,
                 targetUsers,
                 recipientsCount: recipients.length,
-                sentAt: new Date(),
+                emailRecipientsCount: recipients.filter((r) => !!r.email).length,
+                sentAt,
             },
         });
     }
@@ -1398,6 +1450,7 @@ const sendPrivateMessage = (req, res) => __awaiter(void 0, void 0, void 0, funct
         if (!recipient) {
             return res.status(404).json({ message: "Recipient not found" });
         }
+        const sentAt = new Date();
         // Create private notification
         yield notificationsModel_1.default.create({
             recipient: recipientId,
@@ -1410,9 +1463,27 @@ const sendPrivateMessage = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 privateMessage: true,
                 recipientType,
                 adminId,
-                sentAt: new Date(),
+                sentAt,
             },
         });
+        // Also deliver the message to the recipient's email (don't fail the request if mail fails)
+        let emailSent = false;
+        if (recipient.email) {
+            const { sent } = yield sendAdminMessageEmails([
+                {
+                    email: recipient.email,
+                    name: getRecipientDisplayName(recipient, recipientType),
+                    type: recipientType,
+                },
+            ], {
+                messageType: "private",
+                title,
+                message,
+                senderName: admin.name,
+                sentAt,
+            });
+            emailSent = sent > 0;
+        }
         return res.status(200).json({
             message: `Private message sent to ${recipientType}`,
             data: {
@@ -1420,7 +1491,8 @@ const sendPrivateMessage = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 recipientType,
                 title,
                 message,
-                sentAt: new Date(),
+                emailSent,
+                sentAt,
             },
         });
     }
@@ -1935,14 +2007,18 @@ const refreshTokenAdmin = (req, res) => __awaiter(void 0, void 0, void 0, functi
             return res.status(400).json({ message: "Refresh token is required" });
         }
         // Verify refresh token
-        const decoded = jsonwebtoken_1.default.verify(refreshToken, process.env.JWT_REFRESH_SECRET || environmentVariables_1.EnvironmentVariables.JWT_SECRET);
+        const decoded = (0, token_1.verifyRefreshToken)(refreshToken);
         // Find admin by ID and check if refresh token matches
         const admin = yield adminModel_1.adminModel.findById(decoded._id);
         if (!admin || admin.refreshToken !== refreshToken) {
             return res.status(401).json({ message: "Invalid refresh token" });
         }
         // Generate new access token
-        const accessToken = jsonwebtoken_1.default.sign({ _id: admin._id, name: admin.name, role: admin.role }, environmentVariables_1.EnvironmentVariables.JWT_SECRET, { expiresIn: "15m" });
+        const accessToken = (0, token_1.generateAccessToken)({
+            _id: admin._id,
+            name: admin.name,
+            role: admin.role,
+        });
         return res.status(200).json({
             message: "Token refreshed successfully",
             accessToken,
@@ -1955,3 +2031,19 @@ const refreshTokenAdmin = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.refreshTokenAdmin = refreshTokenAdmin;
+const logoutAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Revoke the stored refresh token so it can no longer renew the session.
+        yield adminModel_1.adminModel.findByIdAndUpdate(req.user._id, {
+            $unset: { refreshToken: "" },
+        });
+        return res.status(200).json({ message: "Logged out successfully." });
+    }
+    catch (error) {
+        return res.status(500).json({
+            message: "An error occurred",
+            error: error.message,
+        });
+    }
+});
+exports.logoutAdmin = logoutAdmin;

@@ -12,13 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.clearAllOrdersCompletely = exports.verifyOtpAndResetPassword = exports.forgetPassword = exports.allUsers = exports.getUserOrders = exports.findOneUser = exports.loginUser = exports.resentOtp = exports.verifyOtp = exports.create_user = exports.googleAuthUser = void 0;
+exports.clearAllOrdersCompletely = exports.verifyOtpAndResetPassword = exports.forgetPassword = exports.allUsers = exports.getUserOrders = exports.findOneUser = exports.logoutUser = exports.refreshTokenUser = exports.loginUser = exports.resentOtp = exports.verifyOtp = exports.create_user = exports.googleAuthUser = void 0;
 const path_1 = __importDefault(require("path"));
 const userModel_1 = require("../model/userModel");
 const email_1 = require("../config/email");
 const ejs_1 = __importDefault(require("ejs"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const axios_1 = __importDefault(require("axios"));
 const orderModel_1 = require("../model/orderModel");
 const vendorModel_1 = require("../model/vendorModel");
@@ -26,6 +25,7 @@ const google_auth_library_1 = require("google-auth-library");
 const notificationsModel_1 = __importDefault(require("../model/notificationsModel"));
 const communityModel_1 = require("../model/communityModel");
 const emailValidation_1 = require("../utils/emailValidation");
+const token_1 = require("../utils/token");
 const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_ID);
 const googleAuthUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -49,10 +49,21 @@ const googleAuthUser = (req, res) => __awaiter(void 0, void 0, void 0, function*
                 isVerified: true,
             });
         }
-        const authToken = jsonwebtoken_1.default.sign({ userId: user._id, email: user.email, role: "user" }, process.env.JWT_SECRET, { expiresIn: "7d" });
+        const accessToken = (0, token_1.generateAccessToken)({
+            _id: user._id,
+            userId: user._id,
+            email: user.email,
+            role: "user",
+        });
+        const refreshToken = (0, token_1.generateRefreshToken)({ _id: user._id });
+        // Persist the refresh token so it can be validated/revoked later.
+        user.refreshToken = refreshToken;
+        yield user.save();
         return res.status(200).json({
             message: "Google authentication successful",
-            token: authToken,
+            token: accessToken,
+            accessToken,
+            refreshToken,
             data: user,
         });
     }
@@ -230,13 +241,22 @@ const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const locationResponse = yield axios_1.default.get(`http://ip-api.com/json/${ip}`);
         const { city, country } = locationResponse.data;
         user.country = `${city},${country}`;
-        // 🔐 Generate Token
-        const token = jsonwebtoken_1.default.sign({ userId: user._id }, process.env.JWT_SECRET, {
-            expiresIn: "7d",
+        // 🔐 Generate tokens
+        const accessToken = (0, token_1.generateAccessToken)({
+            _id: user._id,
+            userId: user._id,
+            email: user.email,
+            role: "user",
         });
+        const refreshToken = (0, token_1.generateRefreshToken)({ _id: user._id });
+        // Persist the refresh token (and the resolved location) for this user.
+        user.refreshToken = refreshToken;
+        yield user.save();
         return res.status(200).json({
             message: "Login successful",
-            token,
+            token: accessToken,
+            accessToken,
+            refreshToken,
             user: Object.assign(Object.assign({}, user.toObject()), { location: { city, country } }),
         });
     }
@@ -246,6 +266,52 @@ const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.loginUser = loginUser;
+const refreshTokenUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { refreshToken } = req.body;
+        if (!refreshToken) {
+            return res.status(400).json({ message: "Refresh token is required" });
+        }
+        const decoded = (0, token_1.verifyRefreshToken)(refreshToken);
+        const user = yield userModel_1.userModel.findById(decoded._id);
+        if (!user || user.refreshToken !== refreshToken) {
+            return res.status(401).json({ message: "Invalid refresh token" });
+        }
+        const accessToken = (0, token_1.generateAccessToken)({
+            _id: user._id,
+            userId: user._id,
+            email: user.email,
+            role: "user",
+        });
+        return res.status(200).json({
+            message: "Token refreshed successfully",
+            token: accessToken,
+            accessToken,
+        });
+    }
+    catch (error) {
+        return res
+            .status(401)
+            .json({ message: "Invalid refresh token", error: error.message });
+    }
+});
+exports.refreshTokenUser = refreshTokenUser;
+const logoutUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Revoke the stored refresh token so it can no longer renew the session.
+        yield userModel_1.userModel.findByIdAndUpdate(req.user._id, {
+            $unset: { refreshToken: "" },
+        });
+        return res.status(200).json({ message: "Logged out successfully." });
+    }
+    catch (error) {
+        return res.status(500).json({
+            message: "An error occurred",
+            error: error.message,
+        });
+    }
+});
+exports.logoutUser = logoutUser;
 const findOneUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const getOneUser = yield userModel_1.userModel

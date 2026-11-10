@@ -16,4 +16,6 @@ userRouter.get("/alll_users", userController_1.allUsers);
 userRouter.post("/auth/google/user", userController_1.googleAuthUser);
 userRouter.post("/forgotpassword_user", userController_1.forgetPassword);
 userRouter.post("/resetpassword_user", userController_1.verifyOtpAndResetPassword);
+userRouter.post("/refresh_token", userController_1.refreshTokenUser);
+userRouter.post("/logout", jwt_authenticate_1.authenticate, userController_1.logoutUser);
 exports.default = userRouter;

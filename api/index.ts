@@ -161,6 +161,8 @@ io.on("connection", (socket) => {
 });
 
 app.use(express.json());
+// CORS temporarily open to ALL origins while we isolate the backend outage.
+// (Restore the mbaay.com allowlist once the server is confirmed up.)
 app.use(cors());
 
 app.use("/api/v1/user", userRouter);

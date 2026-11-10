@@ -16,11 +16,6 @@ const uri =
 export const DbConnect = async () => {
   try {
     const connect = mongoose.connect(uri);
-    // await verifyUnverifiedProducts();
-    // await fixMissingBidderModels();
-    // await migrateMessagesReadStatus();
-    // await clearAllOrdersCompletely(); // Removed order clearing on DB connect
-    // (await clearCustomerCareDataForTesting(),
     console.log(`You have been connected successfully`);
   } catch (error) {
     throw error;

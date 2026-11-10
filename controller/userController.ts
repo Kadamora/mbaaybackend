@@ -14,6 +14,11 @@ import notificationsModel from "../model/notificationsModel";
 import { VendorCommunityModel } from "../model/communityModel";
 import mongoose from "mongoose";
 import { validateEmailDeliverable } from "../utils/emailValidation";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "../utils/token";
 
 const client = new OAuth2Client(process.env.GOOGLE_ID);
 
@@ -45,15 +50,23 @@ export const googleAuthUser = async (req: any, res: any) => {
       });
     }
 
-    const authToken = jwt.sign(
-      { userId: user._id, email: user.email, role: "user" },
-      process.env.JWT_SECRET!,
-      { expiresIn: "7d" },
-    );
+    const accessToken = generateAccessToken({
+      _id: user._id,
+      userId: user._id,
+      email: user.email,
+      role: "user",
+    });
+    const refreshToken = generateRefreshToken({ _id: user._id });
+
+    // Persist the refresh token so it can be validated/revoked later.
+    user.refreshToken = refreshToken;
+    await user.save();
 
     return res.status(200).json({
       message: "Google authentication successful",
-      token: authToken,
+      token: accessToken,
+      accessToken,
+      refreshToken,
       data: user,
     });
   } catch (error: any) {
@@ -292,14 +305,24 @@ export const loginUser = async (req: Request, res: any) => {
     const { city, country } = locationResponse.data;
 
     user.country = `${city},${country}`;
-    // 🔐 Generate Token
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
-      expiresIn: "7d",
+    // 🔐 Generate tokens
+    const accessToken = generateAccessToken({
+      _id: user._id,
+      userId: user._id,
+      email: user.email,
+      role: "user",
     });
+    const refreshToken = generateRefreshToken({ _id: user._id });
+
+    // Persist the refresh token (and the resolved location) for this user.
+    user.refreshToken = refreshToken;
+    await user.save();
 
     return res.status(200).json({
       message: "Login successful",
-      token,
+      token: accessToken,
+      accessToken,
+      refreshToken,
       user: {
         ...user.toObject(),
         location: { city, country }, // 🗺️ Attach City & Country
@@ -308,6 +331,56 @@ export const loginUser = async (req: Request, res: any) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const refreshTokenUser = async (req: Request, res: any) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({ message: "Refresh token is required" });
+    }
+
+    const decoded: any = verifyRefreshToken(refreshToken);
+
+    const user: any = await userModel.findById(decoded._id);
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.status(401).json({ message: "Invalid refresh token" });
+    }
+
+    const accessToken = generateAccessToken({
+      _id: user._id,
+      userId: user._id,
+      email: user.email,
+      role: "user",
+    });
+
+    return res.status(200).json({
+      message: "Token refreshed successfully",
+      token: accessToken,
+      accessToken,
+    });
+  } catch (error: any) {
+    return res
+      .status(401)
+      .json({ message: "Invalid refresh token", error: error.message });
+  }
+};
+
+export const logoutUser = async (req: any, res: any) => {
+  try {
+    // Revoke the stored refresh token so it can no longer renew the session.
+    await userModel.findByIdAndUpdate(req.user._id, {
+      $unset: { refreshToken: "" },
+    });
+
+    return res.status(200).json({ message: "Logged out successfully." });
+  } catch (error: any) {
+    return res.status(500).json({
+      message: "An error occurred",
+      error: error.message,
+    });
   }
 };
 

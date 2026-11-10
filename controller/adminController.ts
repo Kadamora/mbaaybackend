@@ -6,6 +6,11 @@ import NotificationModel from "../model/notificationsModel";
 import { EnvironmentVariables } from "../Environment/environmentVariables";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "../utils/token";
 import { userModel } from "../model/userModel";
 import chatModel from "../model/chatModel";
 import messageModel from "../model/messageModel";
@@ -19,6 +24,47 @@ import { InvoiceModel } from "../model/invoiceModel";
 import path from "path";
 import { sendMail } from "../config/email";
 import ejs from "ejs";
+
+type MessageRecipientType = "user" | "vendor" | "admin";
+
+const adminMessageTemplatePath = path.join(
+  __dirname,
+  "..",
+  "..",
+  "view",
+  "admin_message.ejs",
+);
+
+const getRecipientDisplayName = (doc: any, type: MessageRecipientType) =>
+  type === "vendor" ? doc?.storeName || doc?.userName : doc?.name;
+
+const renderAdminMessageEmail = (data: {
+  recipientName?: string;
+  recipientType: MessageRecipientType;
+  messageType: "broadcast" | "private";
+  title: string;
+  message: string;
+  senderName?: string;
+  sentAt: Date;
+}) =>
+  ejs.renderFile(
+    adminMessageTemplatePath,
+    {
+      ...data,
+      sentAt: data.sentAt.toLocaleString("en-US", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }),
+      actionLink:
+        data.recipientType === "vendor"
+          ? "https://mbaay.com/vendor/dashboard"
+          : "https://mbaay.com",
+      supportEmail: "mbaay.com@gmail.com",
+      supportLink: "https://mbaay.com/support",
+      privacyLink: "https://mbaay.com/privacy",
+    },
+    { cache: true },
+  );
 
 export const create_admin = async (req: Request, res: any) => {
   try {
@@ -238,18 +284,12 @@ export const login_admin = async (req: Request, res: any) => {
       return res.status(401).json({ message: "Invalid credentials." });
     }
 
-    const accessToken = jwt.sign(
-      { _id: admin._id, name: admin.name, role: admin.role },
-      EnvironmentVariables.JWT_SECRET,
-      { expiresIn: "15m" },
-    );
-    const refreshToken = jwt.sign(
-      { _id: admin._id },
-      process.env.JWT_REFRESH_SECRET || EnvironmentVariables.JWT_SECRET,
-      {
-        expiresIn: "7d",
-      },
-    );
+    const accessToken = generateAccessToken({
+      _id: admin._id,
+      name: admin.name,
+      role: admin.role,
+    });
+    const refreshToken = generateRefreshToken({ _id: admin._id });
 
     // Store refresh token in DB
     admin.refreshToken = refreshToken;
@@ -1474,6 +1514,46 @@ export const getAllReviews = async (req: any, res: any) => {
 };
 
 // Admin Messaging Functions
+const sendAdminMessageEmails = async (
+  recipients: { email?: string; name?: string; type: MessageRecipientType }[],
+  payload: {
+    messageType: "broadcast" | "private";
+    title: string;
+    message: string;
+    senderName?: string;
+    sentAt: Date;
+  },
+  batchSize = 10,
+) => {
+  const withEmail = recipients.filter((r) => !!r.email);
+  const subject =
+    payload.messageType === "broadcast"
+      ? `Mbaay Announcement: ${payload.title}`
+      : `Message from Mbaay: ${payload.title}`;
+
+  let sent = 0;
+  let failed = 0;
+
+  for (let i = 0; i < withEmail.length; i += batchSize) {
+    const batch = withEmail.slice(i, i + batchSize);
+    const results = await Promise.allSettled(
+      batch.map(async (r) => {
+        const html = await renderAdminMessageEmail({
+          ...payload,
+          recipientName: r.name,
+          recipientType: r.type,
+        });
+        await sendMail(r.email as string, subject, html);
+      }),
+    );
+    results.forEach((result) =>
+      result.status === "fulfilled" ? sent++ : failed++,
+    );
+  }
+
+  return { sent, failed, skipped: recipients.length - withEmail.length };
+};
+
 export const sendBroadcastMessage = async (req: any, res: any) => {
   try {
     const adminId = req.user._id;
@@ -1496,32 +1576,58 @@ export const sendBroadcastMessage = async (req: any, res: any) => {
     }
 
     // Get recipients based on target
-    let recipients: any[] = [];
+    let recipients: {
+      id: any;
+      type: MessageRecipientType;
+      email?: string;
+      name?: string;
+    }[] = [];
+
+    const toRecipient = (type: MessageRecipientType) => (doc: any) => ({
+      id: doc._id,
+      type,
+      email: doc.email,
+      name: getRecipientDisplayName(doc, type),
+    });
+
+    const fetchUsers = () =>
+      userModel
+        .find({}, "_id name email")
+        .lean()
+        .then((d) => d.map(toRecipient("user")));
+    const fetchVendors = () =>
+      vendorModel
+        .find({}, "_id storeName userName email")
+        .lean()
+        .then((d) => d.map(toRecipient("vendor")));
+    const fetchAdmins = () =>
+      adminModel
+        .find({}, "_id name email")
+        .lean()
+        .then((d) => d.map(toRecipient("admin")));
 
     switch (targetUsers) {
-      case "all":
-        const allUsers = await userModel.find({}, "_id");
-        const allVendors = await vendorModel.find({}, "_id");
-        const allAdmins = await adminModel.find({}, "_id");
-        recipients = [
-          ...allUsers.map((u: any) => ({ id: u._id, type: "user" })),
-          ...allVendors.map((v: any) => ({ id: v._id, type: "vendor" })),
-          ...allAdmins.map((a: any) => ({ id: a._id, type: "admin" })),
-        ];
+      case "all": {
+        const [u, v, a] = await Promise.all([
+          fetchUsers(),
+          fetchVendors(),
+          fetchAdmins(),
+        ]);
+        recipients = [...u, ...v, ...a];
         break;
+      }
       case "users":
-        const users = await userModel.find({}, "_id");
-        recipients = users.map((u: any) => ({ id: u._id, type: "user" }));
+        recipients = await fetchUsers();
         break;
       case "vendors":
-        const vendors = await vendorModel.find({}, "_id");
-        recipients = vendors.map((v: any) => ({ id: v._id, type: "vendor" }));
+        recipients = await fetchVendors();
         break;
       case "admins":
-        const admins = await adminModel.find({}, "_id");
-        recipients = admins.map((a: any) => ({ id: a._id, type: "admin" }));
+        recipients = await fetchAdmins();
         break;
     }
+
+    const sentAt = new Date();
 
     // Create notifications for all recipients
     const notifications = recipients.map((recipient: any) =>
@@ -1536,12 +1642,27 @@ export const sendBroadcastMessage = async (req: any, res: any) => {
           broadcast: true,
           targetUsers,
           adminId,
-          sentAt: new Date(),
+          sentAt,
         },
       }),
     );
 
     await Promise.all(notifications);
+
+    // Email delivery runs in the background so large broadcasts don't block the response
+    sendAdminMessageEmails(recipients, {
+      messageType: "broadcast",
+      title,
+      message,
+      senderName: admin.name,
+      sentAt,
+    })
+      .then(({ sent, failed, skipped }) =>
+        console.log(
+          `📢 Broadcast "${title}" emails — sent: ${sent}, failed: ${failed}, no email: ${skipped}`,
+        ),
+      )
+      .catch((err) => console.error("Broadcast email error:", err));
 
     return res.status(200).json({
       message: `Broadcast message sent to ${recipients.length} ${targetUsers}`,
@@ -1550,7 +1671,8 @@ export const sendBroadcastMessage = async (req: any, res: any) => {
         message,
         targetUsers,
         recipientsCount: recipients.length,
-        sentAt: new Date(),
+        emailRecipientsCount: recipients.filter((r) => !!r.email).length,
+        sentAt,
       },
     });
   } catch (error: any) {
@@ -1602,6 +1724,8 @@ export const sendPrivateMessage = async (req: any, res: any) => {
       return res.status(404).json({ message: "Recipient not found" });
     }
 
+    const sentAt = new Date();
+
     // Create private notification
     await NotificationModel.create({
       recipient: recipientId,
@@ -1614,9 +1738,31 @@ export const sendPrivateMessage = async (req: any, res: any) => {
         privateMessage: true,
         recipientType,
         adminId,
-        sentAt: new Date(),
+        sentAt,
       },
     });
+
+    // Also deliver the message to the recipient's email (don't fail the request if mail fails)
+    let emailSent = false;
+    if (recipient.email) {
+      const { sent } = await sendAdminMessageEmails(
+        [
+          {
+            email: recipient.email,
+            name: getRecipientDisplayName(recipient, recipientType),
+            type: recipientType,
+          },
+        ],
+        {
+          messageType: "private",
+          title,
+          message,
+          senderName: admin.name,
+          sentAt,
+        },
+      );
+      emailSent = sent > 0;
+    }
 
     return res.status(200).json({
       message: `Private message sent to ${recipientType}`,
@@ -1625,7 +1771,8 @@ export const sendPrivateMessage = async (req: any, res: any) => {
         recipientType,
         title,
         message,
-        sentAt: new Date(),
+        emailSent,
+        sentAt,
       },
     });
   } catch (error: any) {
@@ -2205,10 +2352,7 @@ export const refreshTokenAdmin = async (req: Request, res: any) => {
     }
 
     // Verify refresh token
-    const decoded: any = jwt.verify(
-      refreshToken,
-      process.env.JWT_REFRESH_SECRET || EnvironmentVariables.JWT_SECRET,
-    );
+    const decoded: any = verifyRefreshToken(refreshToken);
 
     // Find admin by ID and check if refresh token matches
     const admin = await adminModel.findById(decoded._id);
@@ -2217,11 +2361,11 @@ export const refreshTokenAdmin = async (req: Request, res: any) => {
     }
 
     // Generate new access token
-    const accessToken = jwt.sign(
-      { _id: admin._id, name: admin.name, role: admin.role },
-      EnvironmentVariables.JWT_SECRET,
-      { expiresIn: "15m" },
-    );
+    const accessToken = generateAccessToken({
+      _id: admin._id,
+      name: admin.name,
+      role: admin.role,
+    });
 
     return res.status(200).json({
       message: "Token refreshed successfully",
@@ -2231,5 +2375,21 @@ export const refreshTokenAdmin = async (req: Request, res: any) => {
     return res
       .status(401)
       .json({ message: "Invalid refresh token", error: error.message });
+  }
+};
+
+export const logoutAdmin = async (req: any, res: any) => {
+  try {
+    // Revoke the stored refresh token so it can no longer renew the session.
+    await adminModel.findByIdAndUpdate(req.user._id, {
+      $unset: { refreshToken: "" },
+    });
+
+    return res.status(200).json({ message: "Logged out successfully." });
+  } catch (error: any) {
+    return res.status(500).json({
+      message: "An error occurred",
+      error: error.message,
+    });
   }
 };

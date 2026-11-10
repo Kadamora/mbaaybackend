@@ -10,6 +10,8 @@ import {
   resentOtp,
   verifyOtp,
   verifyOtpAndResetPassword,
+  refreshTokenUser,
+  logoutUser,
 } from "../controller/userController";
 import { authenticate } from "../middlewares/jwt_authenticate";
 import { getMyPendingShippingOrders } from "../controller/orderController";
@@ -31,4 +33,6 @@ userRouter.get("/alll_users", allUsers);
 userRouter.post("/auth/google/user", googleAuthUser);
 userRouter.post("/forgotpassword_user", forgetPassword);
 userRouter.post("/resetpassword_user", verifyOtpAndResetPassword);
+userRouter.post("/refresh_token", refreshTokenUser);
+userRouter.post("/logout", authenticate, logoutUser);
 export default userRouter;

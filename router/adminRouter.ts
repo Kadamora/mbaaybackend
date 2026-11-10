@@ -45,6 +45,7 @@ import {
   getAdminPaymentsAndInvoices,
   editAdminProfile,
   refreshTokenAdmin,
+  logoutAdmin,
 } from "../controller/adminController";
 import { authenticate } from "../middlewares/jwt_authenticate";
 
@@ -53,6 +54,7 @@ const adminRouter = Router();
 adminRouter.post("/create_admin", create_admin);
 adminRouter.post("/login_admin", login_admin);
 adminRouter.post("/refresh_token", refreshTokenAdmin);
+adminRouter.post("/logout", authenticate, logoutAdmin);
 adminRouter.get("/get_vendor_details/:vendorId", getVendorDetails);
 adminRouter.get("/find_one_admin", authenticate, find_one_admin);
 adminRouter.get("/get_admin/:adminId", authenticate, getAnAdmin);

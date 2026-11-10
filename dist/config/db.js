@@ -21,11 +21,6 @@ const uri = "mongodb+srv://mbaaycom_db_user:mbaaystore@cluster0.av0sw4p.mongodb.
 const DbConnect = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const connect = mongoose_1.default.connect(uri);
-        // await verifyUnverifiedProducts();
-        // await fixMissingBidderModels();
-        // await migrateMessagesReadStatus();
-        // await clearAllOrdersCompletely(); // Removed order clearing on DB connect
-        // (await clearCustomerCareDataForTesting(),
         console.log(`You have been connected successfully`);
     }
     catch (error) {
